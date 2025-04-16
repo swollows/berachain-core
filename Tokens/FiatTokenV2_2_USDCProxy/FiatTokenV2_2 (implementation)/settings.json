@@ -1,0 +1,23 @@
+{
+	"optimizer": {
+		"enabled": true,
+		"runs": 10000000
+	},
+	"outputSelection": {
+		"*": {
+			"*": [
+				"evm.bytecode",
+				"evm.deployedBytecode",
+				"devdoc",
+				"userdoc",
+				"metadata",
+				"abi"
+			]
+		}
+	},
+	"libraries": {
+		"contracts/util/SignatureChecker.sol": {
+			"SignatureChecker": "0xbab93b7ad7fe8692a878b95a8e689423437cc500"
+		}
+	}
+}

@@ -1,0 +1,53 @@
+{
+	"remappings": [
+		"@openzeppelin/contracts/=node_modules/@openzeppelin/contracts/",
+		"@openzeppelin/contracts-upgradeable/=node_modules/@openzeppelin/contracts-upgradeable/",
+		"@openzeppelin-gov/=node_modules/@openzeppelin/contracts-upgradeable/governance/",
+		"@openzeppelin-gov-ext/=node_modules/@openzeppelin/contracts-upgradeable/governance/extensions/",
+		"@prb/math/=node_modules/@prb/math/",
+		"@pythnetwork/=node_modules/@pythnetwork/pyth-sdk-solidity/",
+		"forge-std/=lib/forge-std/src/",
+		"solady/src/=lib/solady/src/",
+		"solady/test/=lib/solady/test/",
+		"transient-goodies/=lib/transient-goodies/src/",
+		"@mock/=test/mock/",
+		"ds-test/=lib/openzeppelin-foundry-upgrades/lib/solidity-stringutils/lib/ds-test/src/",
+		"openzeppelin-foundry-upgrades/=lib/openzeppelin-foundry-upgrades/src/",
+		"solidity-stringutils/=lib/openzeppelin-foundry-upgrades/lib/solidity-stringutils/"
+	],
+	"optimizer": {
+		"enabled": true,
+		"runs": 4294967295
+	},
+	"metadata": {
+		"useLiteralContent": false,
+		"bytecodeHash": "none",
+		"appendCBOR": true
+	},
+	"outputSelection": {
+		"src/WBERA.sol": {
+			"WBERA": [
+				"*"
+			]
+		},
+		"*": {
+			"*": [
+				"abi",
+				"evm.bytecode",
+				"evm.deployedBytecode",
+				"evm.methodIdentifiers",
+				"metadata",
+				"devdoc",
+				"userdoc",
+				"storageLayout",
+				"evm.gasEstimates"
+			],
+			"": [
+				"ast"
+			]
+		}
+	},
+	"evmVersion": "cancun",
+	"viaIR": false,
+	"libraries": {}
+}
