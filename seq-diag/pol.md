@@ -1,10 +1,10 @@
 # src/pol
 
 ## RewardSystem
-![RewardSystem Sequence Diagram](pol/RewardSystem_Sequence.png)
+![RewardSystem Sequence Diagram](diag-images/pol/RewardSystem_Sequence.png)
 
 ## Deployment
-![Deployment Sequence Diagram](pol/Deployment_Sequence.png)
+![Deployment Sequence Diagram](diag-images/pol/Deployment_Sequence.png)
 
 ## BGTStaking
-![BGTStaking Sequence Diagram](pol/BGTStaking_Sequence.png) 
+![BGTStaking Sequence Diagram](diag-images/pol/BGTStaking_Sequence.png) 
