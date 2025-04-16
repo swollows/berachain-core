@@ -1,0 +1,32 @@
+@startuml
+title TimeLock 시퀀스 다이어그램
+
+actor User
+participant "TimeLock" as TL
+participant "TimelockController" as TC
+
+note over User, TL
+  상황: 타임락 컨트랙트 초기화 시
+  목적: 타임락 시스템 설정
+end note
+
+User -> TL: initialize(minDelay, proposers, executors, admin)
+activate TL
+TL -> TC: __TimelockController_init(minDelay, proposers, executors, admin)
+note right: 타임락 컨트롤러 초기화
+deactivate TL
+
+note over User, TL
+  상황: 컨트랙트 업그레이드 시
+  목적: 새로운 구현체로 업그레이드
+end note
+
+User -> TL: _authorizeUpgrade(newImplementation)
+activate TL
+TL -> TC: onlyRole(DEFAULT_ADMIN_ROLE)
+activate TC
+TC --> TL: 권한 확인
+deactivate TC
+deactivate TL
+
+@enduml 

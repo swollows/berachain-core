@@ -1,0 +1,41 @@
+@startuml
+title HoneyDeployer 시퀀스 다이어그램
+
+actor Deployer
+participant "HoneyDeployer" as HD
+participant "Create2Deployer" as CD
+participant "Honey" as H
+
+note over Deployer, HD
+  상황: Honey 토큰 배포 시
+  목적: Honey 토큰 시스템 배포
+end note
+
+Deployer -> HD: constructor(honeyCode, honeySalt)
+activate HD
+HD -> CD: _deploy(honeyCode, honeySalt)
+activate CD
+CD -> CD: deployWithCreate2()
+note right: Honey 구현체 배포
+CD -> CD: deployProxyWithCreate2()
+note right: Honey 프록시 배포
+CD --> HD: honey
+deactivate CD
+
+HD -> H: initialize("Honey", "HNY")
+activate H
+H --> HD: initialized
+deactivate H
+
+HD -> H: grantRole(MINTER_ROLE, self)
+activate H
+H --> HD: role granted
+deactivate H
+
+HD -> H: revokeRole(DEFAULT_ADMIN_ROLE, self)
+activate H
+H --> HD: role revoked
+deactivate H
+deactivate HD
+
+@enduml 

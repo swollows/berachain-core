@@ -1,0 +1,79 @@
+@startuml
+title BerachainGovernance 시퀀스 다이어그램
+
+actor User
+participant "BerachainGovernance" as BG
+participant "Token" as T
+participant "TimelockController" as TC
+
+note over User, BG
+  상황: 거버넌스 컨트랙트 초기화 시
+  목적: 거버넌스 시스템 설정
+end note
+
+User -> BG: initialize(_token, _timelock, params)
+activate BG
+BG -> BG: __UUPSUpgradeable_init()
+note right: UUPS 업그레이드 초기화
+BG -> BG: __Governor_init("BerachainGovernance")
+note right: 거버넌스 이름 설정
+BG -> BG: __GovernorSettings_init()
+note right: 투표 지연, 기간, 임계값 설정
+BG -> BG: __GovernorCountingSimple_init()
+note right: 단순 투표 계산 초기화
+BG -> BG: __GovernorStorage_init()
+note right: 업그레이드 가능한 스토리지 초기화
+BG -> BG: __GovernorVotes_init(_token)
+note right: 투표 토큰 설정
+BG -> BG: __GovernorVotesQuorumFraction_init()
+note right: 쿼럼 설정
+BG -> BG: __GovernorTimelockControl_init(_timelock)
+note right: 타임락 컨트롤러 설정
+deactivate BG
+
+note over User, BG
+  상황: 제안 생성 시
+  목적: 새로운 거버넌스 제안 생성
+end note
+
+User -> BG: propose(targets, values, calldatas, description)
+activate BG
+BG -> BG: _propose(targets, values, calldatas, description, proposer)
+note right: 제안 상세 정보 저장
+BG -> TC: scheduleBatch(targets, values, calldatas, salt)
+activate TC
+TC --> BG: scheduled
+deactivate TC
+BG --> User: proposalId
+deactivate BG
+
+note over User, BG
+  상황: 투표 시
+  목적: 제안에 대한 투표
+end note
+
+User -> BG: castVote(proposalId, support)
+activate BG
+BG -> T: getVotes(account)
+activate T
+T --> BG: weight
+deactivate T
+BG -> BG: _countVote(proposalId, account, support, weight, params)
+note right: 투표 집계
+BG --> User: weight
+deactivate BG
+
+note over User, BG
+  상황: 제안 실행 시
+  목적: 승인된 제안 실행
+end note
+
+User -> BG: execute(targets, values, calldatas, descriptionHash)
+activate BG
+BG -> TC: executeBatch(targets, values, calldatas, salt)
+activate TC
+TC --> BG: executed
+deactivate TC
+deactivate BG
+
+@enduml 

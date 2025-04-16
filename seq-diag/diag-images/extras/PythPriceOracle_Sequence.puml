@@ -1,0 +1,74 @@
+@startuml
+title PythPriceOracle 시퀀스 다이어그램
+
+actor User
+participant "PythPriceOracle" as PPO
+participant "Pyth" as P
+participant "AccessControl" as AC
+
+note over User, PPO
+  상황: 오라클 초기화 시
+  목적: 관리자 권한 설정
+end note
+
+User -> PPO: initialize(governance_)
+activate PPO
+PPO -> PPO: __AccessControl_init()
+note right: 접근 제어 초기화
+PPO -> PPO: __UUPSUpgradeable_init()
+note right: UUPS 업그레이드 초기화
+PPO -> PPO: __PriceOracle_init_unchained(governance_)
+note right: 관리자 권한 부여
+deactivate PPO
+
+note over User, PPO
+  상황: Pyth 소스 설정 시
+  목적: Pyth 오라클 주소 설정
+end note
+
+User -> PPO: setPythSource(pythOracle_)
+activate PPO
+PPO -> AC: _checkRole(DEFAULT_ADMIN_ROLE)
+activate AC
+AC --> PPO: 권한 확인
+deactivate AC
+PPO -> PPO: pyth 설정
+note right: Pyth 오라클 주소 저장
+deactivate PPO
+
+note over User, PPO
+  상황: 가격 피드 설정 시
+  목적: 자산별 Pyth 피드 ID 설정
+end note
+
+User -> PPO: setPriceFeed(asset, feed)
+activate PPO
+PPO -> AC: _checkRole(MANAGER_ROLE)
+activate AC
+AC --> PPO: 권한 확인
+deactivate AC
+PPO -> PPO: feeds[asset] 설정
+note right: 자산별 피드 ID 저장
+PPO -> PPO: getPrice(asset)
+note right: 피드 설정 확인
+deactivate PPO
+
+note over User, PPO
+  상황: 자산 가격 조회 시
+  목적: Pyth 오라클에서 가격 조회
+end note
+
+User -> PPO: getPrice(asset)
+activate PPO
+PPO -> PPO: _pythAndFeedAreSet(asset)
+note right: Pyth 및 피드 설정 확인
+PPO -> P: getPrice(feeds[asset])
+activate P
+P --> PPO: price
+deactivate P
+PPO -> PPO: _wrapData(price)
+note right: 가격 데이터 변환
+PPO --> User: data
+deactivate PPO
+
+@enduml 

@@ -1,0 +1,40 @@
+@startuml
+title Utils 시퀀스 다이어그램
+
+actor User
+participant "Utils" as U
+
+note over User, U
+  상황: 데이터 해싱 시
+  목적: 데이터 해시 생성
+end note
+
+User -> U: hash(data)
+activate U
+U -> U: keccak256(data)
+note right: Keccak256 해시 생성
+deactivate U
+
+note over User, U
+  상황: 서명자 복구 시
+  목적: 서명에서 서명자 복구
+end note
+
+User -> U: recoverSigner(data, signature)
+activate U
+U -> U: ecrecover(data, signature)
+note right: ECDSA 복구
+deactivate U
+
+note over User, U
+  상황: 주소 검증 시
+  목적: 주소 유효성 검증
+end note
+
+User -> U: validateAddress(address)
+activate U
+U -> U: _validateAddress(address)
+note right: 주소 검증
+deactivate U
+
+@enduml 

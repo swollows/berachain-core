@@ -1,0 +1,45 @@
+@startuml
+title Honey 시퀀스 다이어그램
+
+actor User
+participant "Honey" as H
+participant "ERC20" as E
+
+note over User, H
+  상황: Honey 토큰 초기화 시
+  목적: Honey 토큰 시스템 설정
+end note
+
+User -> H: initialize(name, symbol)
+activate H
+H -> E: __ERC20_init(name, symbol)
+note right: ERC20 토큰 초기화
+H -> H: _setupRole(DEFAULT_ADMIN_ROLE, msg.sender)
+note right: 관리자 권한 설정
+deactivate H
+
+note over User, H
+  상황: 토큰 민팅 시
+  목적: 새로운 Honey 토큰 생성
+end note
+
+User -> H: mint(to, amount)
+activate H
+H -> H: onlyRole(MINTER_ROLE)
+note right: 민터 권한 확인
+H -> E: _mint(to, amount)
+note right: 토큰 민팅
+deactivate H
+
+note over User, H
+  상황: 토큰 소각 시
+  목적: Honey 토큰 소각
+end note
+
+User -> H: burn(amount)
+activate H
+H -> E: _burn(msg.sender, amount)
+note right: 토큰 소각
+deactivate H
+
+@enduml 

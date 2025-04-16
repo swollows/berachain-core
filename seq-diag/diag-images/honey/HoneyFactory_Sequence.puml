@@ -1,0 +1,60 @@
+@startuml
+title HoneyFactory 시퀀스 다이어그램
+
+actor Admin
+participant "HoneyFactory" as HF
+participant "HoneyDeployer" as HD
+participant "Honey" as H
+participant "CollateralVault" as CV
+
+note over Admin, HF
+  상황: HoneyFactory 초기화 시
+  목적: HoneyFactory 시스템 설정
+end note
+
+Admin -> HF: constructor(honeyDeployer)
+activate HF
+HF -> HF: _setHoneyDeployer(honeyDeployer)
+deactivate HF
+
+note over Admin, HF
+  상황: 새로운 Honey 토큰 생성 시
+  목적: 새로운 Honey 토큰 배포 및 설정
+end note
+
+Admin -> HF: createHoney(name, symbol, honeySalt)
+activate HF
+HF -> HD: deployHoney(honeySalt)
+activate HD
+HD --> HF: honey
+deactivate HD
+
+HF -> H: initialize(name, symbol)
+activate H
+H --> HF: initialized
+deactivate H
+
+HF -> H: grantRole(MINTER_ROLE, self)
+activate H
+H --> HF: role granted
+deactivate H
+
+HF -> H: revokeRole(DEFAULT_ADMIN_ROLE, self)
+activate H
+H --> HF: role revoked
+deactivate H
+
+HF -> HF: _setHoney(honey)
+deactivate HF
+
+note over Admin, HF
+  상황: 담보 금고 설정 시
+  목적: 담보 금고 연결
+end note
+
+Admin -> HF: setCollateralVault(collateralVault)
+activate HF
+HF -> HF: _setCollateralVault(collateralVault)
+deactivate HF
+
+@enduml 

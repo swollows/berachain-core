@@ -1,0 +1,40 @@
+@startuml
+title BeaconRoots 시퀀스 다이어그램
+
+actor User
+participant "BeaconRoots" as BR
+participant "SSZ" as SSZ
+
+note over User, BR
+  상황: Beacon 블록 루트 저장 시
+  목적: Beacon 블록 루트 저장 및 검증
+end note
+
+User -> BR: storeBeaconRoot(blockNumber, beaconRoot)
+activate BR
+BR -> SSZ: hashTreeRoot(beaconRoot)
+activate SSZ
+SSZ --> BR: hashedRoot
+deactivate SSZ
+
+BR -> BR: _storeBeaconRoot(blockNumber, hashedRoot)
+note right: Beacon 루트 저장
+deactivate BR
+
+note over User, BR
+  상황: Beacon 블록 루트 검증 시
+  목적: 저장된 Beacon 루트 검증
+end note
+
+User -> BR: verifyBeaconRoot(blockNumber, beaconRoot)
+activate BR
+BR -> SSZ: hashTreeRoot(beaconRoot)
+activate SSZ
+SSZ --> BR: hashedRoot
+deactivate SSZ
+
+BR -> BR: _verifyBeaconRoot(blockNumber, hashedRoot)
+note right: Beacon 루트 검증
+deactivate BR
+
+@enduml 

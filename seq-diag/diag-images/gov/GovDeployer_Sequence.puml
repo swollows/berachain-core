@@ -1,0 +1,67 @@
+@startuml
+title GovDeployer 시퀀스 다이어그램
+
+actor Deployer
+participant "GovDeployer" as GD
+participant "Token" as T
+participant "BerachainGovernance" as BG
+participant "TimeLock" as TL
+participant "Create2Deployer" as CD
+
+note over Deployer, GD
+  상황: 거버넌스 시스템 배포 시
+  목적: 거버넌스 및 타임락 컨트랙트 배포
+end note
+
+Deployer -> GD: constructor(token, guardian, params...)
+activate GD
+GD -> T: _checkIfERC20Votes(token)
+activate T
+T --> GD: token check
+deactivate T
+
+GD -> CD: _deploy(governanceCode, govSalt)
+activate CD
+CD -> CD: deployWithCreate2()
+note right: 거버넌스 구현체 배포
+CD -> CD: deployProxyWithCreate2()
+note right: 거버넌스 프록시 배포
+CD --> GD: governance
+deactivate CD
+
+GD -> CD: _deploy(timelockCode, timelockSalt)
+activate CD
+CD -> CD: deployWithCreate2()
+note right: 타임락 구현체 배포
+CD -> CD: deployProxyWithCreate2()
+note right: 타임락 프록시 배포
+CD --> GD: timelock
+deactivate CD
+
+GD -> TL: initialize(timelockMinDelay, enabledContracts, enabledContracts, deployer)
+activate TL
+TL --> GD: initialized
+deactivate TL
+
+GD -> TL: grantRole(CANCELLER_ROLE, guardian)
+activate TL
+TL --> GD: role granted
+deactivate TL
+
+GD -> TL: revokeRole(DEFAULT_ADMIN_ROLE, deployer)
+activate TL
+TL --> GD: role revoked
+deactivate TL
+
+GD -> BG: initialize(token, timelock, params)
+activate BG
+BG --> GD: initialized
+deactivate BG
+
+GD -> BG: CLOCK_MODE()
+activate BG
+BG --> GD: clock mode
+deactivate BG
+deactivate GD
+
+@enduml 

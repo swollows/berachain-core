@@ -1,0 +1,56 @@
+@startuml
+title RewardVault_V0 시퀀스 다이어그램
+
+actor User
+participant "RewardVault_V0" as RV
+participant "ERC20" as E
+
+note over User, RV
+  상황: RewardVault 초기화 시
+  목적: RewardVault 시스템 설정
+end note
+
+User -> RV: initialize()
+activate RV
+RV -> RV: _initialize()
+deactivate RV
+
+note over User, RV
+  상황: 보상 토큰 예치 시
+  목적: 보상 토큰 예치
+end note
+
+User -> RV: depositRewards(amount)
+activate RV
+RV -> E: transferFrom(msg.sender, address(this), amount)
+activate E
+E --> RV: transferred
+deactivate E
+
+RV -> RV: _depositRewards(amount)
+note right: 보상 토큰 예치
+deactivate RV
+
+note over User, RV
+  상황: 보상 분배 시
+  목적: 보상 토큰 분배
+end note
+
+User -> RV: distributeRewards()
+activate RV
+RV -> RV: _distributeRewards()
+note right: 보상 분배 로직 실행
+deactivate RV
+
+note over User, RV
+  상황: 보상 청구 시
+  목적: 보상 토큰 청구
+end note
+
+User -> RV: claimRewards()
+activate RV
+RV -> RV: _claimRewards()
+note right: 보상 청구 로직 실행
+deactivate RV
+
+@enduml 

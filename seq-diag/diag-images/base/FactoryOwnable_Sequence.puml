@@ -1,0 +1,68 @@
+@startuml
+title FactoryOwnable 시퀀스 다이어그램
+
+actor User
+participant "FactoryOwnable" as FO
+participant "Factory" as F
+participant "AccessControl" as AC
+
+note over User, FO
+  상황: 컨트랙트 초기화 시
+  목적: 팩토리 컨트랙트 설정
+end note
+
+User -> FO: __FactoryOwnable_init(factoryAddr)
+activate FO
+FO -> FO: _setFactory(factoryAddr)
+note right: 팩토리 주소 저장
+deactivate FO
+
+note over User, FO
+  상황: 권한이 필요한 작업 수행 시
+  목적: 팩토리 소유자 권한 확인
+end note
+
+User -> FO: onlyFactoryOwner()
+activate FO
+FO -> FO: _checkFactoryOwner()
+activate FO
+FO -> F: hasRole(DEFAULT_ADMIN_ROLE, user)
+activate F
+F --> FO: isOwner
+deactivate F
+FO --> User: 권한 확인 결과
+deactivate FO
+
+note over User, FO
+  상황: 볼트 관리 작업 수행 시
+  목적: 볼트 관리자 권한 확인
+end note
+
+User -> FO: onlyFactoryVaultManager()
+activate FO
+FO -> FO: _checkFactoryVaultManager()
+activate FO
+FO -> F: hasRole(VAULT_MANAGER_ROLE, user)
+activate F
+F --> FO: isManager
+deactivate F
+FO --> User: 권한 확인 결과
+deactivate FO
+
+note over User, FO
+  상황: 볼트 일시 중지 작업 수행 시
+  목적: 볼트 일시 중지 권한 확인
+end note
+
+User -> FO: onlyFactoryVaultPauser()
+activate FO
+FO -> FO: _checkFactoryVaultPauser()
+activate FO
+FO -> F: hasRole(VAULT_PAUSER_ROLE, user)
+activate F
+F --> FO: isPauser
+deactivate F
+FO --> User: 권한 확인 결과
+deactivate FO
+
+@enduml 

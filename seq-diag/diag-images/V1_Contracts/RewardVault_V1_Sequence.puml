@@ -1,0 +1,77 @@
+@startuml
+title RewardVault_V1 시퀀스 다이어그램
+
+actor User
+participant "RewardVault_V1" as RV
+participant "ERC20" as E
+participant "BeraChef_V1" as BC
+
+note over User, RV
+  상황: RewardVault_V1 초기화 시
+  목적: RewardVault_V1 시스템 설정
+end note
+
+User -> RV: initialize()
+activate RV
+RV -> RV: _initialize()
+deactivate RV
+
+note over User, RV
+  상황: 보상 토큰 예치 시
+  목적: 보상 토큰 예치
+end note
+
+User -> RV: depositRewards(amount)
+activate RV
+RV -> E: transferFrom(msg.sender, address(this), amount)
+activate E
+E --> RV: transferred
+deactivate E
+
+RV -> RV: _depositRewards(amount)
+note right: 보상 토큰 예치
+deactivate RV
+
+note over User, RV
+  상황: 보상 분배 시
+  목적: 보상 토큰 분배
+end note
+
+User -> RV: distributeRewards()
+activate RV
+RV -> RV: _distributeRewards()
+note right: 보상 분배 로직 실행
+deactivate RV
+
+note over User, RV
+  상황: 보상 청구 시
+  목적: 보상 토큰 청구
+end note
+
+User -> RV: claimRewards(poolId)
+activate RV
+RV -> BC: getStakedAmount(poolId, msg.sender)
+activate BC
+BC --> RV: stakedAmount
+deactivate BC
+
+RV -> RV: _calculateRewards(poolId, stakedAmount)
+note right: 보상 계산
+RV -> E: transfer(msg.sender, rewardAmount)
+activate E
+E --> RV: transferred
+deactivate E
+deactivate RV
+
+note over User, RV
+  상황: 보상 비율 설정 시
+  목적: 보상 분배 비율 설정
+end note
+
+User -> RV: setRewardRate(poolId, rate)
+activate RV
+RV -> RV: _setRewardRate(poolId, rate)
+note right: 보상 비율 설정
+deactivate RV
+
+@enduml 
