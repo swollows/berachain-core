@@ -1,10 +1,10 @@
 # src/honey
 
 ## Honey
-![Honey Sequence Diagram](honey/Honey_Sequence.png)
+![Honey Sequence Diagram](diag-images/honey/Honey_Sequence.png)
 
 ## HoneyFactory
-![HoneyFactory Sequence Diagram](honey/HoneyFactory_Sequence.png)
+![HoneyFactory Sequence Diagram](diag-images/honey/HoneyFactory_Sequence.png)
 
 ## HoneyDeployer
-![HoneyDeployer Sequence Diagram](honey/HoneyDeployer_Sequence.png) 
+![HoneyDeployer Sequence Diagram](diag-images/honey/HoneyDeployer_Sequence.png) 
