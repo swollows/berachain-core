@@ -1,10 +1,10 @@
 # src/libraries
 
 ## Utils
-![Utils Sequence Diagram](libraries/Utils_Sequence.png)
+![Utils Sequence Diagram](diag-images/libraries/Utils_Sequence.png)
 
 ## SSZ
-![SSZ Sequence Diagram](libraries/SSZ_Sequence.png)
+![SSZ Sequence Diagram](diag-images/libraries/SSZ_Sequence.png)
 
 ## BeaconRoots
-![BeaconRoots Sequence Diagram](libraries/BeaconRoots_Sequence.png) 
+![BeaconRoots Sequence Diagram](diag-images/libraries/BeaconRoots_Sequence.png) 
