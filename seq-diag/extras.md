@@ -1,10 +1,10 @@
 # src/extras
 
 ## RootPriceOracle
-![RootPriceOracle Sequence Diagram](extras/RootPriceOracle_Sequence.png)
+![RootPriceOracle Sequence Diagram](diag-images/extras/RootPriceOracle_Sequence.png)
 
 ## PythPriceOracle
-![PythPriceOracle Sequence Diagram](extras/PythPriceOracle_Sequence.png)
+![PythPriceOracle Sequence Diagram](diag-images/extras/PythPriceOracle_Sequence.png)
 
 ## PeggedPriceOracle
-![PeggedPriceOracle Sequence Diagram](extras/PeggedPriceOracle_Sequence.png) 
+![PeggedPriceOracle Sequence Diagram](diag-images/extras/PeggedPriceOracle_Sequence.png) 
