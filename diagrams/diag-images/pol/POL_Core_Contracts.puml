@@ -1,0 +1,173 @@
+@startuml POL_Core_Contracts
+skinparam classAttributeIconSize 0
+hide empty members
+
+package "src/pol" {
+    interface IBGT <<Interface>>
+    interface IBGTStaker <<Interface>>
+    interface IFeeCollector <<Interface>>
+    interface IPOLErrors <<Interface>>
+    interface IBeaconDeposit <<Interface>>
+
+    class BGT <<Contract>> {
+        + staker: address
+        + activateBoostDelay: uint32
+        + dropBoostDelay: uint32
+        + bgtTermsAndConditions: string
+        + totalBoosts: uint128
+        + boostedQueue: mapping(address => mapping(bytes => QueuedBoost))
+        + dropBoostQueue: mapping(address => mapping(bytes => QueuedDropBoost))
+        + boosted: mapping(address => mapping(bytes => uint128))
+        + boostees: mapping(bytes => uint128)
+        + isWhitelistedSender: mapping(address => bool)
+        + initialize(address)
+        + whitelistSender(address, bool)
+        + setMinter(address)
+        + mint(address, uint256)
+        + setStaker(address)
+        + setActivateBoostDelay(uint32)
+        + setDropBoostDelay(uint32)
+        + setBgtTermsAndConditions(string)
+        + queueBoost(bytes, uint128)
+        + cancelBoost(bytes, uint128)
+        + activateBoost(address, bytes)
+        + queueDropBoost(bytes, uint128)
+        + cancelDropBoost(bytes, uint128)
+        + dropBoost(address, bytes)
+        + transferBoost(bytes, bytes, uint128)
+        + stake(uint128)
+        + withdraw(uint128)
+        + normalizedBoost(bytes) : uint256
+        + unboostedBalance(address) : uint256
+        # _authorizeUpgrade(address) (Not implemented - non-upgradeable)
+        # _checkUnboostedBalance(address, uint256)
+        # _transfer(address, address, uint256)
+        # _approve(address, address, uint256)
+        # _spendAllowance(address, address, uint256)
+        # _update(address, address, uint256)
+        # _mint(address, uint256)
+        # _burn(address, uint256)
+        # _moveVotingPower(address, address, uint256)
+    }
+
+    class BGTFeeDeployer <<Contract>> {
+        + bgtStaker: BGTStaker
+        + feeCollector: FeeCollector
+        + constructor(...)
+    }
+
+    class BGTStaker <<Contract>> {
+        + FEE_COLLECTOR: address
+        + initialize(...)
+        + notifyRewardAmount(uint256)
+        + recoverERC20(address, uint256)
+        + setRewardsDuration(uint256)
+        + stake(address, uint256)
+        + withdraw(address, uint256)
+        + getReward() : uint256
+        # _authorizeUpgrade(address)
+        # _safeTransferFromStakeToken(address, uint256) (override)
+        # _safeTransferStakeToken(address, uint256) (override)
+    }
+
+    class BeaconDeposit <<Contract>> {
+        + depositCount: uint64
+        + genesisDepositsRoot: bytes32
+        + queuedOperator: mapping(bytes => QueuedOperator)
+        + supportsInterface(bytes4) : bool
+        + getOperator(bytes) : address
+        + deposit(bytes, bytes, bytes, address)
+        + requestOperatorChange(bytes, address)
+        + cancelOperatorChange(bytes)
+        + acceptOperatorChange(bytes)
+        # _deposit() : uint64
+        # _safeTransferETH(address, uint256)
+    }
+
+    class FeeCollector <<Contract>> {
+        + MANAGER_ROLE: bytes32
+        + PAUSER_ROLE: bytes32
+        + payoutToken: address
+        + queuedPayoutAmount: uint256
+        + payoutAmount: uint256
+        + rewardReceiver: address
+        + initialize(...)
+        + queuePayoutAmountChange(uint256)
+        + claimFees(address, address[])
+        + donate(uint256)
+        + pause()
+        + unpause()
+        # _authorizeUpgrade(address)
+        # _setPayoutAmount()
+    }
+}
+
+package "src/base" {
+    class Create2Deployer <<Contract>>
+    class StakingRewards <<Contract>>
+}
+
+package "src/libraries" {
+    class Utils <<Library>>
+}
+
+package "@openzeppelin/contracts-upgradeable" {
+    class OwnableUpgradeable <<Abstract>>
+    class ERC20VotesUpgradeable <<Abstract>>
+    class UUPSUpgradeable <<Abstract>>
+    class AccessControlUpgradeable <<Abstract>>
+    class PausableUpgradeable <<Abstract>>
+    class ERC20Upgradeable <<Abstract>>
+}
+
+package "@openzeppelin/contracts" {
+    interface IERC6372 <<Interface>>
+    interface IERC20 <<Interface>>
+    interface IERC20Metadata <<Interface>>
+    class SafeERC20 <<Library>>
+}
+
+package "solady/src/utils" {
+    class FixedPointMathLib <<Library>>
+    class SafeTransferLib <<Library>>
+    class Multicallable <<Abstract>>
+}
+
+' Inheritance & Interfaces
+BGT .up.|> IBGT
+BGT <|-- ERC20VotesUpgradeable
+BGT <|-- OwnableUpgradeable
+BGT <|-- Multicallable
+BGTFeeDeployer <|-- Create2Deployer
+BGTStaker .up.|> IBGTStaker
+BGTStaker <|-- OwnableUpgradeable
+BGTStaker <|-- UUPSUpgradeable
+BGTStaker <|-- StakingRewards
+BeaconDeposit .up.|> IBeaconDeposit
+FeeCollector .up.|> IFeeCollector
+FeeCollector <|-- PausableUpgradeable
+FeeCollector <|-- AccessControlUpgradeable
+FeeCollector <|-- UUPSUpgradeable
+
+' Dependencies
+BGT ..> Utils : uses
+BGT ..> FixedPointMathLib : uses
+BGT ..> SafeTransferLib : uses
+BGT ..> IBGTStaker : uses ' Refers to BGTStaker interface
+
+BGTFeeDeployer ..> BGTStaker : <<deploys>>
+BGTFeeDeployer ..> FeeCollector : <<deploys>>
+
+BGTStaker ..> Utils : uses
+BGTStaker ..> SafeERC20 : uses
+BGTStaker ..> IPOLErrors : uses
+BGTStaker ..> BGT : <<uses as stakeToken>>
+BGTStaker ..> FeeCollector : <<uses as FEE_COLLECTOR>>
+
+BeaconDeposit ..> Utils : uses
+
+FeeCollector ..> Utils : uses
+FeeCollector ..> SafeERC20 : uses
+FeeCollector ..> BGTStaker : <<uses as rewardReceiver>>
+
+@enduml 

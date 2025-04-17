@@ -4,7 +4,25 @@
 
 ## Contracts Overview
 
-![POL Contracts Class Diagram](diag-images/pol/POL_Contracts_ClassDiagram.png)
+아래 다이어그램들은 POL 모듈의 주요 계약 그룹들을 보여줍니다.
+
+### POL Core Contracts
+
+BGT 토큰, 스테이킹, 수수료 처리, Beacon 체인 예치 등 PoL의 핵심 로직을 담당하는 계약들의 관계입니다.
+
+![POL Core Contracts Class Diagram](diag-images/pol/POL_Core_Contracts.png)
+
+### POL Rewards Contracts
+
+블록 보상 계산 및 분배, 리워드 볼트 관리 등 PoL의 보상 시스템과 관련된 계약들의 관계입니다.
+
+![POL Rewards Contracts Class Diagram](diag-images/pol/POL_Rewards_Contracts.png)
+
+### POL Deployment
+
+주요 PoL 계약들을 배포하는 Deployer 계약과 배포 대상 계약들과의 관계입니다.
+
+![POL Deployment Class Diagram](diag-images/pol/POL_Deployment.png)
 
 ### 주요 컨트랙트
 

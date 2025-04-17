@@ -1,0 +1,37 @@
+@startuml POL_Deployment
+skinparam classAttributeIconSize 0
+hide empty members
+
+package "src/pol" {
+    class POLDeployer <<Contract>> {
+        + beraChef: BeraChef
+        + blockRewardController: BlockRewardController
+        + rewardVaultFactory: RewardVaultFactory
+        + distributor: Distributor
+        + constructor(...)
+    }
+}
+
+package "src/pol/rewards" {
+    class BeraChef <<Contract>>
+    class BlockRewardController <<Contract>>
+    class RewardVaultFactory <<Contract>>
+    class Distributor <<Contract>>
+    class RewardVault <<Contract>>
+}
+
+package "src/base" {
+    class Create2Deployer <<Contract>>
+}
+
+' Inheritance
+POLDeployer <|-- Create2Deployer
+
+' Dependencies
+POLDeployer ..> BeraChef : <<deploys>>
+POLDeployer ..> BlockRewardController : <<deploys>>
+POLDeployer ..> RewardVaultFactory : <<deploys>>
+POLDeployer ..> Distributor : <<deploys>>
+POLDeployer ..> RewardVault : <<deploys impl>>
+
+@enduml 
