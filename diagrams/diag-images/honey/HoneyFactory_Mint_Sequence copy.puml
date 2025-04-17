@@ -1,0 +1,68 @@
+@startuml HoneyFactory_Mint_Sequence
+title HoneyFactory를 통한 Honey 민팅 절차
+
+actor 사용자
+participant HoneyFactory <<Contract>>
+participant PriceOracle <<IPriceOracle>>
+participant CollateralAsset <<ERC20>>
+participant CollateralVault <<ERC4626>>
+participant Honey <<ERC20>>
+participant 수수료_수신자 <<Address>>
+participant POL_수수료_수집자 <<Address>>
+
+사용자 -> CollateralAsset: approve(HoneyFactory, assetsIn)
+CollateralAsset --> 사용자: 승인 성공
+
+사용자 -> HoneyFactory: mint(asset, assetsIn, receiver)
+activate HoneyFactory
+
+HoneyFactory -> PriceOracle: getPriceNoOlderThan(asset, maxDelay)
+activate PriceOracle
+PriceOracle --> HoneyFactory: 가격 데이터
+deactivate PriceOracle
+
+HoneyFactory -> HoneyFactory: 가격 데이터와 시스템 상태(peg, 바스켓 모드) 기반 민트 비율 결정
+
+HoneyFactory -> HoneyFactory: _mintOrRedeem(... , isMint=true)
+activate HoneyFactory #LightBlue
+
+ HoneyFactory -> CollateralAsset: safeTransferFrom(사용자, CollateralVault, assetsIn)
+ activate CollateralAsset
+ CollateralAsset --> HoneyFactory: 전송 성공
+ deactivate CollateralAsset
+
+ HoneyFactory -> HoneyFactory: 입력 자산과 교환 비율 기반 발행할 지분 계산
+ HoneyFactory -> CollateralVault: mint(shares, HoneyFactory) ' 내부적으로 super.mint 호출
+ activate CollateralVault
+ CollateralVault -> CollateralVault: _mint(HoneyFactory, shares)
+ CollateralVault --> HoneyFactory: shares
+ deactivate CollateralVault
+
+ HoneyFactory -> HoneyFactory: 입력 자산과 민트 비율 기반 발행할 Honey 계산
+ HoneyFactory -> Honey: mint(receiver, honeyOut)
+ activate Honey
+ Honey --> HoneyFactory: 민트 성공
+ deactivate Honey
+
+ HoneyFactory -> HoneyFactory: 민트 수수료 계산
+ HoneyFactory -> HoneyFactory: 수수료 분배 계산 (POL 대 수수료 수신자)
+ opt POL_수수료_수집자에게 수수료 > 0
+  HoneyFactory -> Honey: mint(POL_수수료_수집자, polFee)
+  activate Honey
+  Honey --> HoneyFactory: 민트 성공
+  deactivate Honey
+ end
+ opt 수수료_수신자에게 수수료 > 0
+  HoneyFactory -> Honey: mint(수수료_수신자, receiverFee)
+  activate Honey
+  Honey --> HoneyFactory: 민트 성공
+  deactivate Honey
+ end
+
+HoneyFactory --> HoneyFactory: honeyOut, shares
+deactivate HoneyFactory #LightBlue
+
+HoneyFactory --> 사용자: honeyOut, shares
+deactivate HoneyFactory
+
+@enduml 

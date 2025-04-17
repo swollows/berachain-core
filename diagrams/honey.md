@@ -26,4 +26,16 @@
 
 이 다이어그램은 사용자가 $HONEY를 `HoneyFactory`에 제공하여 담보 자산을 상환받는 과정을 보여줍니다. 민팅과 마찬가지로 팩토리 상태에 따라 단일 또는 바스켓의 담보 자산이 반환될 수 있습니다. 사용자가 제공한 $HONEY는 소각되고, 해당 `CollateralVault`에서 담보 자산이 인출되어 사용자에게 전달됩니다. 상환 과정에서도 수수료가 징수됩니다.
 
-![HoneyFactory Redeem Sequence Diagram](diag-images/honey/HoneyFactory_Redeem_Sequence.png) 
+![HoneyFactory Redeem Sequence Diagram](diag-images/honey/HoneyFactory_Redeem_Sequence.png)
+
+## HoneyFactory 관리자 기능 흐름 (Admin/Manager)
+
+이 다이어그램은 관리자(Admin) 또는 매니저(Manager) 역할을 가진 주소가 `HoneyFactory`의 함수를 호출하여 시스템 파라미터(민트/상환 비율, 수수료 비율 등)를 변경하거나, 특정 볼트를 일시정지하는 등의 관리 작업을 수행하는 과정을 보여줍니다. 각 작업은 역할 기반 접근 제어(`_checkRole`) 확인 후 실행됩니다.
+
+![HoneyFactory Admin Sequence Diagram](diag-images/honey/HoneyFactory_Admin_Sequence.png)
+
+## HoneyFactoryReader 데이터 조회 흐름
+
+이 다이어그램은 외부 호출자가 `HoneyFactoryReader` 컨트랙트를 사용하여 $HONEY 민팅 또는 상환 시 예상되는 결과(예: 필요한 담보량, 받게 될 $HONEY 양)를 미리 계산하는 과정을 보여줍니다. `HoneyFactoryReader`는 `HoneyFactory`와 관련 `CollateralVault`에서 필요한 상태 정보(바스켓 모드, 가중치, 볼트 주소, 민트/상환 비율 등)를 읽어와 계산을 수행합니다.
+
+![HoneyReader Sequence Diagram](diag-images/honey/HoneyReader_Sequence.png) 

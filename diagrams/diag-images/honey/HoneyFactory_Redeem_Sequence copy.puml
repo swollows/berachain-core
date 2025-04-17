@@ -1,0 +1,75 @@
+@startuml HoneyFactory_Redeem_Sequence
+title HoneyFactory를 통한 Honey 상환 절차
+
+actor 사용자
+participant HoneyFactory <<Contract>>
+participant PriceOracle <<IPriceOracle>>
+participant Honey <<ERC20>>
+participant CollateralVault <<ERC4626>>
+participant CollateralAsset <<ERC20>>
+participant 수수료_수신자 <<Address>>
+participant POL_수수료_수집자 <<Address>>
+
+사용자 -> Honey: approve(HoneyFactory, honeyToBurn) ' 사용자가 팩토리가 Honey를 소각하도록 승인
+Honey --> 사용자: 승인 성공
+
+사용자 -> CollateralVault: approve(HoneyFactory, sharesIn) ' 사용자가 팩토리가 볼트 지분을 소각하도록 승인
+CollateralVault --> 사용자: 승인 성공
+
+사용자 -> HoneyFactory: redeem(asset, sharesIn, receiver, owner)
+activate HoneyFactory
+
+HoneyFactory -> PriceOracle: getPriceNoOlderThan(asset, maxDelay)
+activate PriceOracle
+PriceOracle --> HoneyFactory: 가격 데이터
+deactivate PriceOracle
+
+HoneyFactory -> HoneyFactory: 가격 데이터와 시스템 상태(peg, 바스켓 모드) 기반 상환 비율 결정
+
+HoneyFactory -> HoneyFactory: _mintOrRedeem(... , isMint=false)
+activate HoneyFactory #LightBlue
+
+ HoneyFactory -> HoneyFactory: 지분과 교환 비율 기반 소각할 Honey 계산
+ HoneyFactory -> Honey: burnFrom(owner, honeyIn) ' 팩토리가 사용자의 Honey 소각
+ activate Honey
+ Honey --> HoneyFactory: 소각 성공
+ deactivate Honey
+
+ HoneyFactory -> CollateralVault: redeem(sharesIn, HoneyFactory, owner) ' 팩토리가 사용자의 볼트 지분 소각
+ activate CollateralVault
+ CollateralVault -> CollateralVault: _burn(owner, sharesIn)
+ CollateralVault -> CollateralAsset: safeTransfer(HoneyFactory, assetsToReturn)
+ activate CollateralAsset
+ CollateralAsset --> CollateralVault: 전송 성공
+ deactivate CollateralAsset
+ CollateralVault --> HoneyFactory: assetsToReturn
+ deactivate CollateralVault
+
+ HoneyFactory -> HoneyFactory: 지분과 상환 비율 기반 반환할 자산 계산
+ HoneyFactory -> CollateralAsset: safeTransfer(receiver, assetsOut)
+ activate CollateralAsset
+ CollateralAsset --> HoneyFactory: 전송 성공
+ deactivate CollateralAsset
+
+ HoneyFactory -> HoneyFactory: 상환 수수료 계산
+ HoneyFactory -> HoneyFactory: 수수료 분배 계산 (POL 대 수수료 수신자)
+ opt POL_수수료_수집자에게 수수료 > 0
+  HoneyFactory -> Honey: mint(POL_수수료_수집자, polFee)
+  activate Honey
+  Honey --> HoneyFactory: 민트 성공
+  deactivate Honey
+ end
+ opt 수수료_수신자에게 수수료 > 0
+  HoneyFactory -> Honey: mint(수수료_수신자, receiverFee)
+  activate Honey
+  Honey --> HoneyFactory: 민트 성공
+  deactivate Honey
+ end
+
+HoneyFactory --> HoneyFactory: assetsOut
+deactivate HoneyFactory #LightBlue
+
+HoneyFactory --> 사용자: assetsOut
+deactivate HoneyFactory
+
+@enduml 

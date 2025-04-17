@@ -1,0 +1,67 @@
+@startuml HoneyFactory_Admin_Sequence
+title HoneyFactory 파라미터 변경 (관리자/매니저)
+
+actor 관리자_또는_매니저 <<Address>>
+participant HoneyFactory <<Contract>>
+
+== 예시: 민트 비율 설정 (매니저) ==
+관리자_또는_매니저 -> HoneyFactory: setMintRate(asset, mintRate)
+activate HoneyFactory
+
+HoneyFactory -> HoneyFactory: _checkRole(MANAGER_ROLE)
+opt 역할 확인 실패
+ HoneyFactory --> 관리자_또는_매니저: Revert (예: AccessControlUnauthorizedAccount)
+end
+
+HoneyFactory -> HoneyFactory: 민트 비율 검증 (예: > 98%, < 100%)
+opt 검증 실패
+ HoneyFactory --> 관리자_또는_매니저: Revert (예: UnderNinetyEightPercentRate)
+end
+
+HoneyFactory -> HoneyFactory: mintRates[asset] 업데이트
+HoneyFactory -> HoneyFactory: emit MintRateSet(asset, mintRate) ' 이벤트 발생
+
+HoneyFactory --> 관리자_또는_매니저: 성공
+deactivate HoneyFactory
+
+== 예시: POL 수수료 비율 설정 (관리자) ==
+관리자_또는_매니저 -> HoneyFactory: setPOLFeeCollectorFeeRate(rate)
+activate HoneyFactory
+
+HoneyFactory -> HoneyFactory: _checkRole(DEFAULT_ADMIN_ROLE)
+opt 역할 확인 실패
+ HoneyFactory --> 관리자_또는_매니저: Revert (예: AccessControlUnauthorizedAccount)
+end
+
+HoneyFactory -> HoneyFactory: 비율 검증 (< 100%)
+opt 검증 실패
+ HoneyFactory --> 관리자_또는_매니저: Revert (예: OverOneHundredPercentRate)
+end
+
+HoneyFactory -> HoneyFactory: polFeeCollectorFeeRate 업데이트
+HoneyFactory -> HoneyFactory: emit POLFeeCollectorFeeRateSet(rate) ' 이벤트 발생
+
+HoneyFactory --> 관리자_또는_매니저: 성공
+deactivate HoneyFactory
+
+== 예시: 볼트 일시정지 (팩토리 경유) ==
+participant CollateralVault <<Contract>>
+
+관리자_또는_매니저 -> HoneyFactory: pauseVault(vaultAddress)
+activate HoneyFactory
+
+HoneyFactory -> HoneyFactory: _checkRole(VAULT_PAUSER_ROLE) ' VaultAdmin으로부터 상속됨
+opt 역할 확인 실패
+ HoneyFactory --> 관리자_또는_매니저: Revert (예: AccessControlUnauthorizedAccount)
+end
+
+HoneyFactory -> CollateralVault: pause()
+activate CollateralVault
+ CollateralVault -> CollateralVault: _pause()
+ CollateralVault --> HoneyFactory: 성공
+deactivate CollateralVault
+
+HoneyFactory --> 관리자_또는_매니저: 성공
+deactivate HoneyFactory
+
+@enduml 

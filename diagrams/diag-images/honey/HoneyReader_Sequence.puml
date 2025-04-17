@@ -1,0 +1,54 @@
+@startuml HoneyReader_Sequence
+title HoneyFactoryReader 데이터 미리보기 사용
+
+participant 호출자
+participant HoneyFactoryReader <<Contract>>
+participant HoneyFactory <<Contract>>
+participant CollateralVault <<ERC4626>>
+
+== 민트 예상량 미리보기 ==
+호출자 -> HoneyFactoryReader: previewMintHoney(asset, amount)
+activate HoneyFactoryReader
+
+HoneyFactoryReader -> HoneyFactory: isBasketModeEnabled(true)
+activate HoneyFactory
+HoneyFactory --> HoneyFactoryReader: basketMode
+deactivate HoneyFactory
+
+HoneyFactoryReader -> HoneyFactory: numRegisteredAssets()
+HoneyFactoryReader -> HoneyFactory: registeredAssets(i)
+activate HoneyFactory
+HoneyFactory --> HoneyFactoryReader: 자산 목록
+deactivate HoneyFactory
+
+HoneyFactoryReader -> HoneyFactory: getWeights()
+activate HoneyFactory
+HoneyFactory --> HoneyFactoryReader: 가중치
+deactivate HoneyFactory
+
+HoneyFactoryReader -> HoneyFactoryReader: 입력 자산, 양, 가중치, 바스켓 모드 기반 가중치 적용된 담보량 계산
+
+loop 자산 목록의 각 자산에 대해
+ HoneyFactoryReader -> HoneyFactory: vaults(asset_i)
+ activate HoneyFactory
+ HoneyFactory --> HoneyFactoryReader: vaultAddress
+ deactivate HoneyFactory
+
+ HoneyFactoryReader -> CollateralVault: previewDeposit(collateralAmount_i) ' 특정 볼트 인스턴스 호출
+ activate CollateralVault
+ CollateralVault --> HoneyFactoryReader: shares_i
+ deactivate CollateralVault
+
+ HoneyFactoryReader -> HoneyFactory: mintRates(asset_i)
+ activate HoneyFactory
+ HoneyFactory --> HoneyFactoryReader: mintRate_i
+ deactivate HoneyFactory
+
+ HoneyFactoryReader -> HoneyFactoryReader: shares_i와 mintRate_i로 honeyAmount_i 계산
+ HoneyFactoryReader -> HoneyFactoryReader: 총 Honey 양 누적
+end
+
+HoneyFactoryReader --> 호출자: collaterals (계산된 가중 담보량), honey (계산된 총량)
+deactivate HoneyFactoryReader
+
+@enduml 
