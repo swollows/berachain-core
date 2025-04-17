@@ -15,7 +15,7 @@ activate Factory
 Factory --> Factory : basketMode
 deactivate Factory
 
-' Check if expected basket mode matches current mode
+' 기대하는 바스켓 모드와 현재 모드가 일치하는지 확인
 alt expectBasketMode != basketMode
     Factory --> User : revert UnexpectedBasketModeStatus
 end
@@ -27,7 +27,7 @@ activate PriceOracle
 PriceOracle --> Factory : price, timestamp
 deactivate PriceOracle
 Factory -> Factory : _isPegged(asset, price)
-' ... check peg status based on price, timestamp, offsets ...
+' ... 가격, 타임스탬프, 오프셋 등을 기반으로 페그 상태 확인 ...
 
 Factory -> Factory : _mint(asset, amount, receiver, basketMode)
 activate Factory
@@ -61,7 +61,7 @@ loop collaterals (or single asset if not basketMode)
 
     Factory -> Vault : deposit(collateralAmount, receiver)
     activate Vault
-    Vault -> Collateral : safeTransferFrom(Factory, Vault, collateralAmount) ' Vault takes collateral
+    Vault -> Collateral : safeTransferFrom(Factory, Vault, collateralAmount) ' 볼트가 담보를 가져감
     activate Collateral
     Collateral --> Vault
     deactivate Collateral

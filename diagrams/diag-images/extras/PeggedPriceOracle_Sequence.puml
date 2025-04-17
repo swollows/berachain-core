@@ -9,7 +9,7 @@ Caller -> PeggedPriceOracle: getPrice(asset) or getPriceUnsafe(asset), getPriceN
 activate PeggedPriceOracle
 PeggedPriceOracle -> PeggedPriceOracle: _priceData()
 activate PeggedPriceOracle #LightBlue
-note right: Returns fixed price (1e18) and current block.timestamp
+note right: 고정된 가격(1e18)과 현재 block.timestamp를 반환합니다.
 PeggedPriceOracle --> PeggedPriceOracle: priceData
 deactivate PeggedPriceOracle #LightBlue
 PeggedPriceOracle --> Caller: priceData

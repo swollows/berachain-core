@@ -148,13 +148,13 @@ package "solady/src/utils" {
     class FixedPointMathLib <<Library>>
 }
 
-' Inheritance & Interfaces
+' 상속 & 인터페이스
 IStakingRewards <|-- IStakingRewardsErrors
 FactoryOwnable <|-- Initializable
 StakingRewards <|-- Initializable
 StakingRewards .up.|> IStakingRewards
 
-' Dependencies
+' 의존성
 Create2Deployer ..> Create2 : uses
 Create2Deployer ..> ERC1967Proxy : uses
 

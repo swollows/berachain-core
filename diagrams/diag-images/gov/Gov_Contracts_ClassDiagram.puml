@@ -70,7 +70,7 @@ package "@openzeppelin/contracts" {
 }
 
 
-' Inheritance
+' 상속
 BerachainGovernance <|-- UUPSUpgradeable
 BerachainGovernance <|-- GovernorUpgradeable
 BerachainGovernance <|-- GovernorSettingsUpgradeable
@@ -85,7 +85,7 @@ TimeLock <|-- TimelockControllerUpgradeable
 
 GovDeployer <|-- Create2Deployer
 
-' Dependencies
+' 의존성
 GovDeployer ..> BerachainGovernance : <<deploys>>
 GovDeployer ..> TimeLock : <<deploys>>
 GovDeployer ..> IVotes : <<uses>>

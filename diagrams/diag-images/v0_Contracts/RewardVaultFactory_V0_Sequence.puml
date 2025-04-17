@@ -17,7 +17,7 @@ opt getVault[stakingToken] == address(0)
     deactivate Beacon
 
     Factory -> Factory : deployDeterministicERC1967BeaconProxy(beacon, salt)
-    note right: Uses LibClone internally
+    note right: 내부적으로 LibClone 사용
     activate Factory
     Factory --> Factory : vaultProxyAddress
     deactivate Factory

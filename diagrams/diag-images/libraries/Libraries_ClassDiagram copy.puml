@@ -36,7 +36,7 @@ package "solady/src/utils" {
     }
 }
 
-' Dependencies
+' 의존성
 SSZ ..> Utils : uses
 Utils ..> SafeTransferLib : uses
 

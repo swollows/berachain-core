@@ -15,7 +15,7 @@ activate Factory
 Factory --> Factory : basketMode
 deactivate Factory
 
-' Check if expected basket mode matches current mode
+' 기대하는 바스켓 모드와 현재 모드가 일치하는지 확인
 alt expectBasketMode != basketMode
     Factory --> User : revert UnexpectedBasketModeStatus
 end

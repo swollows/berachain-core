@@ -175,7 +175,7 @@ package "solady/src/utils" {
     class SafeTransferLib <<Library>>
 }
 
-' Inheritance & Interfaces
+' 상속 & 인터페이스
 VaultAdmin <|-- AccessControlUpgradeable
 VaultAdmin <|-- PausableUpgradeable
 VaultAdmin <|-- UUPSUpgradeable
@@ -199,7 +199,7 @@ HoneyFactoryReader <|-- AccessControlUpgradeable
 HoneyFactoryReader <|-- UUPSUpgradeable
 HoneyFactoryReader .up.|> IHoneyErrors
 
-' Dependencies
+' 의존성
 HoneyDeployer ..> Honey : <<deploys>>
 HoneyDeployer ..> HoneyFactory : <<deploys>>
 HoneyDeployer ..> HoneyFactoryReader : <<deploys>>

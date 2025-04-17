@@ -90,7 +90,7 @@ package "@pythnetwork" {
     class PythUtils <<Library>>
 }
 
-' Inheritance & Interfaces
+' 상속 & 인터페이스
 IRootPriceOracle <|-- IPriceOracle
 PeggedPriceOracle .up.|> IPriceOracle
 PythPriceOracle .up.|> IPriceOracle
@@ -102,7 +102,7 @@ RootPriceOracle <|-- AccessControl
 RootPriceOracle <|-- Initializable
 RootPriceOracleDeployer <|-- Create2Deployer
 
-' Dependencies
+' 의존성
 PythPriceOracle ..> IPyth : uses
 PythPriceOracle ..> PythStructs.Price : uses
 PythPriceOracle ..> PythUtils : uses

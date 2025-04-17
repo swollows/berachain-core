@@ -133,7 +133,7 @@ package "solady/src/utils" {
     class Multicallable <<Abstract>>
 }
 
-' Inheritance & Interfaces
+' 상속 & 인터페이스
 BGT .up.|> IBGT
 BGT <|-- ERC20VotesUpgradeable
 BGT <|-- OwnableUpgradeable
@@ -149,11 +149,11 @@ FeeCollector <|-- PausableUpgradeable
 FeeCollector <|-- AccessControlUpgradeable
 FeeCollector <|-- UUPSUpgradeable
 
-' Dependencies
+' 의존성
 BGT ..> Utils : uses
 BGT ..> FixedPointMathLib : uses
 BGT ..> SafeTransferLib : uses
-BGT ..> IBGTStaker : uses ' Refers to BGTStaker interface
+BGT ..> IBGTStaker : uses ' BGTStaker 인터페이스 참조
 
 BGTFeeDeployer ..> BGTStaker : <<deploys>>
 BGTFeeDeployer ..> FeeCollector : <<deploys>>

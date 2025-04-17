@@ -118,7 +118,7 @@ package "solady/src/utils" {
      class FixedPointMathLib <<Library>>
 }
 
-' Inheritance & Interfaces
+' 상속 & 인터페이스
 BeraChef_V1 .up.|> IBeraChef_V1
 BeraChef_V1 <|-- OwnableUpgradeable
 BeraChef_V1 <|-- UUPSUpgradeable
@@ -129,7 +129,7 @@ RewardVault_V1 <|-- ReentrancyGuardUpgradeable
 RewardVault_V1 <|-- FactoryOwnable
 RewardVault_V1 <|-- StakingRewards
 
-' Dependencies
+' 의존성
 BeraChef_V1 ..> Utils : uses
 BeraChef_V1 ..> IBeaconDeposit : uses
 BeraChef_V1 ..> IRewardVaultFactory : uses

@@ -19,7 +19,7 @@ Manager -> PythPriceOracle: setPriceFeed(asset, feed)
 activate PythPriceOracle
 PythPriceOracle -> PythPriceOracle: _checkRole(MANAGER_ROLE)
 PythPriceOracle -> PythPriceOracle: Update feeds[asset]
-' Check if feed works by calling getPrice internally
+' 내부적으로 getPrice를 호출하여 피드가 작동하는지 확인
 PythPriceOracle -> PythPriceOracle: getPrice(asset)
 activate PythPriceOracle #LightBlue
 PythPriceOracle -> PythOracle: getPrice(feed)
@@ -32,8 +32,8 @@ deactivate PythPriceOracle #LightBlue
 PythPriceOracle --> Manager: Success
 deactivate PythPriceOracle
 
-== Get Price ==
-Caller -> PythPriceOracle: getPrice(asset) ' or getPriceUnsafe, getPriceNoOlderThan
+== 가격 가져오기 ==
+Caller -> PythPriceOracle: getPrice(asset) ' 또는 getPriceUnsafe, getPriceNoOlderThan
 activate PythPriceOracle
 PythPriceOracle -> PythPriceOracle: _pythAndFeedAreSet(asset)
 opt Pyth or Feed not set
@@ -47,13 +47,13 @@ PythPriceOracle -> PythPriceOracle: _wrapData(price)
 PythPriceOracle --> Caller: IPriceOracle.Data
 deactivate PythPriceOracle
 
-== Check Price Availability ==
+== 가격 가용성 확인 ==
 Caller -> PythPriceOracle: priceAvailable(asset)
 activate PythPriceOracle
 PythPriceOracle -> PythPriceOracle: _pythAndFeedAreSet(asset)
 opt Pyth or Feed not set
  PythPriceOracle --> Caller: false
-else Pyth and Feed are set
+else Pyth 및 Feed 설정됨
  PythPriceOracle -> PythPriceOracle: getPriceUnsafe(asset)
  activate PythPriceOracle #LightBlue
  PythPriceOracle -> PythOracle: getPriceUnsafe(feeds[asset])

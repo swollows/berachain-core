@@ -15,7 +15,7 @@ Create2Deployer --> DerivedContract: deployedAddress
 == Deploy ERC1967 Proxy ==
 DerivedContract -> Create2Deployer: deployProxyWithCreate2(implementation, salt)
 Create2Deployer -> Create2Deployer: initCodeERC1967(implementation)
-note right: Generates init code using\nERC1967Proxy.creationCode\nand implementation address.
+note right: ERC1967Proxy.creationCode와\n구현 주소를 사용하여 init 코드를 생성합니다.
 Create2Deployer --> Create2Deployer: proxyInitCode
 Create2Deployer -> Create2Deployer: deployWithCreate2(salt, proxyInitCode)
 Create2Deployer -> CREATE2_FACTORY: call(gas(), _CREATE2_FACTORY, 0, packed(salt, proxyInitCode), len, 0, 0x14)

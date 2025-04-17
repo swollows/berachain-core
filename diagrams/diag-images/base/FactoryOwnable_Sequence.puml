@@ -9,10 +9,10 @@ participant FactoryContract <<Address>>
 User -> DerivedContract: callFunctionWithModifier()
 activate DerivedContract
 
-DerivedContract -> FactoryOwnable: modifierCheck() ' e.g., onlyFactoryOwner
+DerivedContract -> FactoryOwnable: modifierCheck() ' 예: onlyFactoryOwner
 activate FactoryOwnable
 
-FactoryOwnable -> FactoryOwnable: isFactoryRole(User) ' e.g., isFactoryOwner
+FactoryOwnable -> FactoryOwnable: isFactoryRole(User) ' 예: isFactoryOwner
 activate FactoryOwnable #LightBlue
 
 FactoryOwnable -> FactoryContract: hasRole(role, User)

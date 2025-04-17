@@ -216,7 +216,7 @@ package "solady/src/utils" {
     class UpgradeableBeacon <<Contract>>
 }
 
-' Inheritance & Interfaces
+' 상속 & 인터페이스
 BeaconRootsHelper .up.|> IPOLErrors
 BeraChef .up.|> IBeraChef
 BeraChef <|-- OwnableUpgradeable
@@ -244,7 +244,7 @@ BGTIncentiveDistributor <|-- ReentrancyGuardUpgradeable
 BGTIncentiveDistributor <|-- PausableUpgradeable
 BGTIncentiveDistributor <|-- UUPSUpgradeable
 
-' Dependencies
+' 의존성
 BeaconRootsHelper ..> BeaconRoots : uses
 BeaconRootsHelper ..> SSZ : uses
 BeaconRootsHelper ..> Utils : uses

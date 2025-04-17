@@ -4,7 +4,7 @@ hide empty members
 
 package "src/V2_Contracts" {
     class RewardVault <<Contract>> {
-        ' Note: This contract uses IRewardVault_V1 interface
+        ' 참고: 이 계약은 IRewardVault_V1 인터페이스를 사용합니다.
         + maxIncentiveTokensCount: uint8
         + distributor: address
         + beaconDepositContract: IBeaconDeposit
@@ -92,7 +92,7 @@ package "solady/src/utils" {
      class FixedPointMathLib <<Library>>
 }
 
-' Inheritance & Interfaces
+' 상속 & 인터페이스
 RewardVault .up.|> IRewardVault_V1
 note on link
     Interface used by V2
@@ -103,7 +103,7 @@ RewardVault <|-- ReentrancyGuardUpgradeable
 RewardVault <|-- FactoryOwnable
 RewardVault <|-- StakingRewards
 
-' Dependencies
+' 의존성
 RewardVault ..> Utils : uses
 RewardVault ..> SafeERC20 : uses
 RewardVault ..> FixedPointMathLib : uses

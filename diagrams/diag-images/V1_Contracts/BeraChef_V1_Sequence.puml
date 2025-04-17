@@ -43,13 +43,13 @@ Chef --> Chef : rewardAllocation
 deactivate Chef
 loop rewardAllocation.weights
     Chef -> Vault : getRewardFor(user)
-    note right of Vault : Calculate BGT reward
+    note right of Vault : BGT 보상 계산
     activate Vault
     Vault --> Chef
     deactivate Vault
 
     Chef -> Vault : delegateStake(user, allocatedAmount)
-    note right of Vault : Delegate stake
+    note right of Vault : 스테이크 위임
     activate Vault
     Vault --> Chef
     deactivate Vault

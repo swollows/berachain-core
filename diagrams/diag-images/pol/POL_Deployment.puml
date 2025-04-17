@@ -24,10 +24,10 @@ package "src/base" {
     class Create2Deployer <<Contract>>
 }
 
-' Inheritance
+' 상속
 POLDeployer <|-- Create2Deployer
 
-' Dependencies
+' 의존성
 POLDeployer ..> BeraChef : <<deploys>>
 POLDeployer ..> BlockRewardController : <<deploys>>
 POLDeployer ..> RewardVaultFactory : <<deploys>>

@@ -22,8 +22,8 @@ RootPriceOracle -> RootPriceOracle: Update pythOracle address
 RootPriceOracle --> Manager: Success
 deactivate RootPriceOracle
 
-== Get Price ==
-Caller -> RootPriceOracle: getPrice(asset) ' or getPriceUnsafe, getPriceNoOlderThan
+== 가격 가져오기 ==
+Caller -> RootPriceOracle: getPrice(asset) ' 또는 getPriceUnsafe, getPriceNoOlderThan
 activate RootPriceOracle
 
 RootPriceOracle -> RootPriceOracle: _getAssetAvailability(asset)
@@ -47,7 +47,7 @@ else Not spotAvailable
  PythOracle --> RootPriceOracle: pythData
  deactivate PythOracle
  RootPriceOracle --> Caller: pythData
-else Both Available
+else 모두 사용 가능
  RootPriceOracle -> PythOracle: getPrice(asset) ' or corresponding function call
  activate PythOracle
  PythOracle --> RootPriceOracle: pythData
@@ -62,7 +62,7 @@ end
 
 deactivate RootPriceOracle
 
-== Check Price Availability ==
+== 가격 가용성 확인 ==
 Caller -> RootPriceOracle: priceAvailable(asset)
 activate RootPriceOracle
 opt address(pythOracle) != address(0)

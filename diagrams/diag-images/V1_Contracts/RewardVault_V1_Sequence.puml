@@ -31,9 +31,9 @@ deactivate Vault
 
 Distributor -> Vault : notifyRewardAmount(pubkey, reward)
 activate Vault
-Vault -> Vault : _updateReward(address(0)) ' Update global reward state
+Vault -> Vault : _updateReward(address(0)) ' 전역 보상 상태 업데이트
 Vault -> Vault : _notifyRewardAmount(reward)
-Vault -> Vault : _processIncentives(pubkey, reward) ' Process additional incentives
+Vault -> Vault : _processIncentives(pubkey, reward) ' 추가 인센티브 처리
 Vault --> Distributor
 deactivate Vault
 
