@@ -1,0 +1,71 @@
+@startuml PythPriceOracle_Sequence
+title PythPriceOracle Interactions
+
+actor Admin
+actor Manager
+actor Caller
+participant PythPriceOracle <<Contract>>
+participant PythOracle <<IPyth>>
+
+== Setup ==
+Admin -> PythPriceOracle: setPythSource(pythOracle_)
+activate PythPriceOracle
+PythPriceOracle -> PythPriceOracle: _checkRole(DEFAULT_ADMIN_ROLE)
+PythPriceOracle -> PythPriceOracle: Update pyth address
+PythPriceOracle --> Admin: Success
+deactivate PythPriceOracle
+
+Manager -> PythPriceOracle: setPriceFeed(asset, feed)
+activate PythPriceOracle
+PythPriceOracle -> PythPriceOracle: _checkRole(MANAGER_ROLE)
+PythPriceOracle -> PythPriceOracle: Update feeds[asset]
+' Check if feed works by calling getPrice internally
+PythPriceOracle -> PythPriceOracle: getPrice(asset)
+activate PythPriceOracle #LightBlue
+PythPriceOracle -> PythOracle: getPrice(feed)
+activate PythOracle
+PythOracle --> PythPriceOracle: PythStructs.Price
+deactivate PythOracle
+PythPriceOracle -> PythPriceOracle: _wrapData(price)
+PythPriceOracle --> PythPriceOracle: IPriceOracle.Data
+deactivate PythPriceOracle #LightBlue
+PythPriceOracle --> Manager: Success
+deactivate PythPriceOracle
+
+== Get Price ==
+Caller -> PythPriceOracle: getPrice(asset) ' or getPriceUnsafe, getPriceNoOlderThan
+activate PythPriceOracle
+PythPriceOracle -> PythPriceOracle: _pythAndFeedAreSet(asset)
+opt Pyth or Feed not set
+ PythPriceOracle --> Caller: Revert (UnavailableData)
+end
+PythPriceOracle -> PythOracle: getPrice(feeds[asset]) ' or getPriceUnsafe, getPriceNoOlderThan
+activate PythOracle
+PythOracle --> PythPriceOracle: PythStructs.Price
+deactivate PythOracle
+PythPriceOracle -> PythPriceOracle: _wrapData(price)
+PythPriceOracle --> Caller: IPriceOracle.Data
+deactivate PythPriceOracle
+
+== Check Price Availability ==
+Caller -> PythPriceOracle: priceAvailable(asset)
+activate PythPriceOracle
+PythPriceOracle -> PythPriceOracle: _pythAndFeedAreSet(asset)
+opt Pyth or Feed not set
+ PythPriceOracle --> Caller: false
+else Pyth and Feed are set
+ PythPriceOracle -> PythPriceOracle: getPriceUnsafe(asset)
+ activate PythPriceOracle #LightBlue
+ PythPriceOracle -> PythOracle: getPriceUnsafe(feeds[asset])
+ activate PythOracle
+ PythOracle --> PythPriceOracle: PythStructs.Price
+ deactivate PythOracle
+ PythPriceOracle -> PythPriceOracle: _wrapData(price)
+ PythPriceOracle --> PythPriceOracle: IPriceOracle.Data (data)
+ deactivate PythPriceOracle #LightBlue
+ PythPriceOracle -> PythPriceOracle: Check data.publishTime != 0
+ PythPriceOracle --> Caller: boolean (is available)
+end
+deactivate PythPriceOracle
+
+@enduml 

@@ -1,0 +1,170 @@
+@startuml Base_Contracts_ClassDiagram
+skinparam classAttributeIconSize 0
+hide empty members
+
+package "src/base" {
+    interface IStakingRewardsErrors <<Interface>> {
+        + InsolventReward() <<error>>
+        + InsufficientStake() <<error>>
+        + RewardCycleNotEnded() <<error>>
+        + StakeAmountIsZero() <<error>>
+        + TotalSupplyOverflow() <<error>>
+        + WithdrawAmountIsZero() <<error>>
+        + RewardsDurationIsZero() <<error>>
+    }
+
+    interface IStakingRewards <<Interface>> {
+        + RewardAdded(uint256) <<event>>
+        + Staked(address, uint256) <<event>>
+        + Withdrawn(address, uint256) <<event>>
+        + RewardPaid(address, address, uint256) <<event>>
+        + RewardsDurationUpdated(uint256) <<event>>
+        + balanceOf(address) : uint256
+        + rewards(address) : uint256
+        + userRewardPerTokenPaid(address) : uint256
+        + earned(address) : uint256
+        + getRewardForDuration() : uint256
+        + lastTimeRewardApplicable() : uint256
+        + rewardPerToken() : uint256
+        + totalSupply() : uint256
+        + periodFinish() : uint256
+        + rewardRate() : uint256
+        + rewardsDuration() : uint256
+        + lastUpdateTime() : uint256
+        + undistributedRewards() : uint256
+        + rewardPerTokenStored() : uint256
+    }
+
+    abstract class Create2Deployer <<Contract>> {
+        + _CREATE2_FACTORY: address <<final>>
+        + DeploymentFailed() <<error>>
+        # deployWithCreate2(uint256 salt, bytes initCode) : address
+        # getCreate2Address(uint256 salt, bytes initCode) : address
+        # getCreate2Address(uint256 salt, bytes32 initCodeHash) : address
+        # deployProxyWithCreate2(address implementation, uint256 salt) : address
+        # getCreate2ProxyAddress(address implementation, uint256 salt) : address
+        # initCodeERC1967(address implementation) : bytes
+    }
+
+    abstract class FactoryOwnable <<Contract>> {
+        + OwnableUnauthorizedAccount(address) <<error>>
+        + factory() : address
+        + isFactoryOwner(address) : bool
+        + isFactoryVaultManager(address) : bool
+        + isFactoryVaultPauser(address) : bool
+        # __FactoryOwnable_init(address factoryAddr)
+        # {modifier} onlyFactoryOwner()
+        # {modifier} onlyFactoryVaultManager()
+        # {modifier} onlyFactoryVaultPauser()
+        # _getAdminRole() : bytes32
+        # _getVaultManagerRole() : bytes32
+        # _getVaultPauserRole() : bytes32
+        # _getFactoryOwnableStorage() : FactoryOwnableStorage
+        # getBGTIncentiveDistributor() : address
+        # _setFactory(address factoryAddr)
+        # _checkFactoryOwner()
+        # _checkFactoryVaultManager()
+        # _checkFactoryVaultPauser()
+    }
+
+    abstract class StakingRewards <<Contract>> {
+        + stakeToken: IERC20
+        + rewardToken: IERC20
+        + rewardRate: uint256
+        + undistributedRewards: uint256
+        + rewardPerTokenStored: uint256
+        + totalSupply: uint256
+        + periodFinish: uint256
+        + rewardsDuration: uint256
+        + lastUpdateTime: uint256
+        + _accountInfo: mapping(address => Info)
+        # __StakingRewards_init(address, address, uint256)
+        # {modifier} updateReward(address account)
+        # _notifyRewardAmount(uint256)
+        # _checkRewardSolvency()
+        # _getReward(address account, address recipient) : uint256
+        # _safeTransferRewardToken(address to, uint256 amount)
+        # _stake(address account, uint256 amount)
+        # _safeTransferFromStakeToken(address from, uint256 amount)
+        # _withdraw(address account, uint256 amount)
+        # _safeTransferStakeToken(address to, uint256 amount)
+        # _setRewardRate()
+        # _updateReward(address account)
+        # _setRewardsDuration(uint256 _rewardsDuration)
+        # _computeLeftOverReward() : uint256
+    }
+}
+
+package "src/pol/interfaces" {
+    interface IRewardVaultFactory <<Interface>> {
+        + VAULT_MANAGER_ROLE: bytes32
+        + VAULT_PAUSER_ROLE: bytes32
+        + bgtIncentiveDistributor: address
+    }
+}
+
+package "src/libraries" {
+    class Utils <<Library>>
+}
+
+package "@openzeppelin/contracts-upgradeable/proxy/utils" {
+    abstract class Initializable <<Abstract>>
+}
+
+package "@openzeppelin/contracts-upgradeable/access" {
+    abstract class AccessControlUpgradeable <<Abstract>> {
+        + DEFAULT_ADMIN_ROLE: bytes32
+        + hasRole(bytes32, address) : bool
+    }
+}
+
+package "@openzeppelin/contracts/token/ERC20" {
+    interface IERC20 <<Interface>> {
+        + balanceOf(address) : uint256
+    }
+}
+
+package "@openzeppelin/contracts/token/ERC20/utils" {
+    class SafeERC20 <<Library>> {
+        + safeTransfer(IERC20 token, address to, uint256 value)
+        + safeTransferFrom(IERC20 token, address from, address to, uint256 value)
+    }
+}
+
+package "@openzeppelin/contracts/utils" {
+    class Create2 <<Library>> {
+        + computeAddress(bytes32 salt, bytes32 bytecodeHash) : address
+        + computeAddress(bytes32 salt, bytes32 bytecodeHash, address deployer) : address
+    }
+}
+
+package "@openzeppelin/contracts/proxy/ERC1967" {
+    class ERC1967Proxy <<Contract>> {
+        + creationCode: bytes
+    }
+}
+
+package "solady/src/utils" {
+    class FixedPointMathLib <<Library>>
+}
+
+' Inheritance & Interfaces
+IStakingRewards <|-- IStakingRewardsErrors
+FactoryOwnable <|-- Initializable
+StakingRewards <|-- Initializable
+StakingRewards .up.|> IStakingRewards
+
+' Dependencies
+Create2Deployer ..> Create2 : uses
+Create2Deployer ..> ERC1967Proxy : uses
+
+FactoryOwnable ..> Utils : uses
+FactoryOwnable ..> AccessControlUpgradeable : uses
+FactoryOwnable ..> IRewardVaultFactory : uses
+
+StakingRewards ..> Utils : uses
+StakingRewards ..> IERC20 : uses
+StakingRewards ..> SafeERC20 : uses
+StakingRewards ..> FixedPointMathLib : uses
+
+@enduml 

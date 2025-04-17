@@ -1,0 +1,104 @@
+@startuml Distributor_Sequence
+
+actor Relayer
+participant Dist as "Distributor"
+participant BRC as "BlockRewardController"
+participant BGT as "BGT"
+participant Chef as "BeraChef"
+participant Vault as "RewardVault"
+participant BeaconRootsLib as "BeaconRoots"
+participant SSZLib as "SSZ"
+
+Relayer -> Dist : distributeFor(nextTimestamp, proposerIndex, pubkey, proposerIndexProof, pubkeyProof)
+activate Dist
+
+Dist -> Dist : _processTimestampInBuffer(nextTimestamp)
+activate Dist
+Dist -> BeaconRootsLib : getParentBlockRootAt(nextTimestamp)
+activate BeaconRootsLib
+BeaconRootsLib --> Dist : parentBeaconBlockRoot
+deactivate BeaconRootsLib
+Dist -> Dist : check and update _processedTimestampsBuffer
+Dist --> Dist : parentBeaconBlockRoot
+deactivate Dist
+
+Dist -> Dist : _verifyProposerIndexInBeaconBlock(parentBeaconBlockRoot, proposerIndexProof, proposerIndex)
+activate Dist
+Dist -> SSZLib : uint64HashTreeRoot(proposerIndex)
+activate SSZLib
+SSZLib --> Dist : proposerIndexRoot
+deactivate SSZLib
+Dist -> SSZLib : verifyProof(proposerIndexProof, parentBeaconBlockRoot, proposerIndexRoot, proposerIndexGIndex)
+activate SSZLib
+SSZLib --> Dist : verificationResult
+deactivate SSZLib
+Dist --> Dist
+deactivate Dist
+
+Dist -> Dist : _verifyValidatorPubkeyInBeaconBlock(parentBeaconBlockRoot, pubkeyProof, pubkey, proposerIndex)
+activate Dist
+Dist -> SSZLib : validatorPubkeyHashTreeRoot(pubkey)
+activate SSZLib
+SSZLib --> Dist : validatorPubkeyRoot
+deactivate SSZLib
+Dist -> SSZLib : verifyProof(pubkeyProof, parentBeaconBlockRoot, validatorPubkeyRoot, gIndex)
+activate SSZLib
+SSZLib --> Dist : verificationResult
+deactivate SSZLib
+Dist --> Dist
+deactivate Dist
+
+Dist -> Dist : _distributeFor(pubkey, nextTimestamp)
+activate Dist
+Dist -> Chef : isReady()
+activate Chef
+Chef --> Dist : isChefReady
+deactivate Chef
+
+Dist -> BRC : processRewards(pubkey, nextTimestamp, isChefReady)
+activate BRC
+BRC -> BGT : normalizedBoost(pubkey)
+activate BGT
+BGT --> BRC : boostPower
+deactivate BGT
+BRC -> BRC : computeReward(boostPower, ...)
+BRC -> BGT : mint(operator, baseRate)
+activate BGT
+BGT --> BRC
+deactivate BGT
+BRC -> BGT : mint(Distributor, rewardAmount)
+activate BGT
+BGT --> BRC
+deactivate BGT
+BRC --> Dist : rewardAmount
+deactivate BRC
+
+opt rewardAmount > 0
+    Dist -> Chef : activateReadyQueuedRewardAllocation(pubkey)
+    activate Chef
+    Chef --> Dist
+    deactivate Chef
+    Dist -> Chef : getActiveRewardAllocation(pubkey)
+    activate Chef
+    Chef --> Dist : rewardAllocation
+    deactivate Chef
+
+    loop rewardAllocation.weights
+        Dist -> BGT : safeIncreaseAllowance(receiver, allocatedReward)
+        activate BGT
+        BGT --> Dist
+        deactivate BGT
+        Dist -> Vault : notifyRewardAmount(pubkey, allocatedReward)
+        activate Vault
+        Vault --> Dist
+        deactivate Vault
+    end
+end
+
+Dist --> Dist
+deactivate Dist
+
+Dist --> Relayer
+deactivate Dist
+
+@enduml 

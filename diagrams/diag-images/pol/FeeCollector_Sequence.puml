@@ -1,0 +1,42 @@
+@startuml FeeCollector_Sequence
+
+actor Claimer
+participant Collector as "FeeCollector"
+participant PayoutToken as "IERC20 (Payout Token)"
+participant FeeToken as "IERC20 (Fee Token)"
+participant Staker as "BGTStaker"
+
+Claimer -> Collector : claimFees(recipient, feeTokens)
+activate Collector
+
+Collector -> PayoutToken : safeTransferFrom(Claimer, Staker, payoutAmount)
+activate PayoutToken
+PayoutToken --> Collector
+deactivate PayoutToken
+
+Collector -> Staker : notifyRewardAmount(payoutAmount)
+activate Staker
+Staker -> Staker : _notifyRewardAmount(payoutAmount)
+Staker --> Collector
+deactivate Staker
+
+loop feeTokens
+    Collector -> FeeToken : balanceOf(Collector)
+    activate FeeToken
+    FeeToken --> Collector : feeTokenBalance
+    deactivate FeeToken
+
+    Collector -> FeeToken : safeTransfer(recipient, feeTokenBalance)
+    activate FeeToken
+    FeeToken --> Collector
+    deactivate FeeToken
+end
+
+opt queuedPayoutAmount != 0
+    Collector -> Collector : _setPayoutAmount()
+end
+
+Collector --> Claimer
+deactivate Collector
+
+@enduml 

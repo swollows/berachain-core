@@ -1,0 +1,24 @@
+@startuml PeggedPriceOracle_Sequence
+title PeggedPriceOracle Price Query
+
+actor Caller
+participant PeggedPriceOracle <<Contract>>
+
+== Get Price ==
+Caller -> PeggedPriceOracle: getPrice(asset) or getPriceUnsafe(asset), getPriceNoOlderThan(asset, age)
+activate PeggedPriceOracle
+PeggedPriceOracle -> PeggedPriceOracle: _priceData()
+activate PeggedPriceOracle #LightBlue
+note right: Returns fixed price (1e18) and current block.timestamp
+PeggedPriceOracle --> PeggedPriceOracle: priceData
+deactivate PeggedPriceOracle #LightBlue
+PeggedPriceOracle --> Caller: priceData
+deactivate PeggedPriceOracle
+
+== Check Price Availability ==
+Caller -> PeggedPriceOracle: priceAvailable(asset)
+activate PeggedPriceOracle
+PeggedPriceOracle --> Caller: true
+deactivate PeggedPriceOracle
+
+@enduml 

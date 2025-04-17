@@ -1,0 +1,25 @@
+@startuml TimeLock_Sequence
+
+participant Proposer as "Governor / Proposer"
+participant TL as "TimeLock"
+participant Target as "Target Contract"
+
+Proposer -> TL : scheduleBatch(targets, values, calldatas, predecessor, salt, delay)
+activate TL
+TL --> Proposer : operationId
+deactivate TL
+
+... Delay Period ...
+
+Proposer -> TL : executeBatch(targets, values, calldatas, predecessor, salt)
+activate TL
+loop targets
+    TL -> Target : call{value: values[i]}(calldatas[i])
+    activate Target
+    Target --> TL
+    deactivate Target
+end
+TL --> Proposer
+deactivate TL
+
+@enduml 

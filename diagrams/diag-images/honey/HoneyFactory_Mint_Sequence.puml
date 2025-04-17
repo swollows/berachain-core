@@ -1,0 +1,85 @@
+@startuml HoneyFactory_Mint_Sequence
+
+actor User
+participant Factory as "HoneyFactory"
+participant HoneyToken as "Honey"
+participant Collateral as "ERC20 (Collateral)"
+participant Vault as "CollateralVault"
+participant PriceOracle as "IPriceOracle"
+
+User -> Factory : mint(asset, amount, receiver, expectBasketMode)
+activate Factory
+
+Factory -> Factory : isBasketModeEnabled(true)
+activate Factory
+Factory --> Factory : basketMode
+deactivate Factory
+
+' Check if expected basket mode matches current mode
+alt expectBasketMode != basketMode
+    Factory --> User : revert UnexpectedBasketModeStatus
+end
+
+Factory -> Factory : _checkGoodCollateralAsset(asset)
+
+Factory -> PriceOracle : getPrice(asset)
+activate PriceOracle
+PriceOracle --> Factory : price, timestamp
+deactivate PriceOracle
+Factory -> Factory : _isPegged(asset, price)
+' ... check peg status based on price, timestamp, offsets ...
+
+Factory -> Factory : _mint(asset, amount, receiver, basketMode)
+activate Factory
+
+Factory -> Collateral : safeTransferFrom(User, Factory, assetAmount)
+activate Collateral
+Collateral --> Factory
+deactivate Collateral
+
+Factory -> Factory : _getWeights(true, basketMode)
+activate Factory
+Factory --> Factory : weights
+deactivate Factory
+
+Factory -> Factory : _checkCollateralLimits(collaterals, mintAmounts)
+
+loop collaterals (or single asset if not basketMode)
+    Factory -> Vault : previewDeposit(collateralAmount)
+    activate Vault
+    Vault --> Factory : shares
+    deactivate Vault
+
+    Factory -> Factory : Calculate honeyToMint based on shares and mintRate
+    Factory -> Factory : _collectFee(collateral, feeShares)
+    activate Factory
+    Factory -> Factory : Update collectedFees[feeReceiver][collateral]
+    Factory -> Factory : Update collectedFees[polFeeCollector][collateral]
+    Factory -> Factory : Update collectedAssetFees[collateral]
+    Factory --> Factory
+    deactivate Factory
+
+    Factory -> Vault : deposit(collateralAmount, receiver)
+    activate Vault
+    Vault -> Collateral : safeTransferFrom(Factory, Vault, collateralAmount) ' Vault takes collateral
+    activate Collateral
+    Collateral --> Vault
+    deactivate Collateral
+    Vault -> Vault : _mint(receiver, vaultShares)
+    Vault --> Factory : vaultShares
+    deactivate Vault
+
+    Factory -> HoneyToken : mint(receiver, honeyToMint)
+    activate HoneyToken
+    HoneyToken -> HoneyToken : _mint(receiver, honeyToMint)
+    HoneyToken --> Factory
+    deactivate HoneyToken
+end
+
+Factory --> Factory : totalHoneyMinted
+deactivate Factory
+
+Factory --> User : totalHoneyMinted
+deactivate Factory
+
+@enduml 

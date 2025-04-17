@@ -1,0 +1,25 @@
+@startuml Create2Deployer_Sequence
+title Create2Deployer Interactions
+
+participant DerivedContract <<Contract>>
+participant Create2Deployer <<Abstract>>
+participant CREATE2_FACTORY <<Address>>
+participant ERC1967Proxy <<Bytecode>>
+
+== Deploy Standard Contract ==
+DerivedContract -> Create2Deployer: deployWithCreate2(salt, initCode)
+Create2Deployer -> CREATE2_FACTORY: call(gas(), _CREATE2_FACTORY, 0, packed(salt, initCode), len, 0, 0x14)
+CREATE2_FACTORY --> Create2Deployer: return(deployedAddress)
+Create2Deployer --> DerivedContract: deployedAddress
+
+== Deploy ERC1967 Proxy ==
+DerivedContract -> Create2Deployer: deployProxyWithCreate2(implementation, salt)
+Create2Deployer -> Create2Deployer: initCodeERC1967(implementation)
+note right: Generates init code using\nERC1967Proxy.creationCode\nand implementation address.
+Create2Deployer --> Create2Deployer: proxyInitCode
+Create2Deployer -> Create2Deployer: deployWithCreate2(salt, proxyInitCode)
+Create2Deployer -> CREATE2_FACTORY: call(gas(), _CREATE2_FACTORY, 0, packed(salt, proxyInitCode), len, 0, 0x14)
+CREATE2_FACTORY --> Create2Deployer: return(proxyAddress)
+Create2Deployer --> DerivedContract: proxyAddress
+
+@enduml 

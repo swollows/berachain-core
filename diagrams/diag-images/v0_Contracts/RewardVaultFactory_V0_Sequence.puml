@@ -1,0 +1,38 @@
+@startuml RewardVaultFactory_V0_Sequence
+
+actor Creator
+participant Factory as "RewardVaultFactory_V0"
+participant Beacon as "UpgradeableBeacon"
+participant VaultProxy as "RewardVault_V0 Proxy"
+participant VaultImpl as "RewardVault_V0 Impl"
+
+Creator -> Factory : createRewardVault(stakingToken)
+activate Factory
+
+opt getVault[stakingToken] == address(0)
+    Factory -> Factory : Calculate deterministic salt from stakingToken
+    Factory -> Beacon : implementation()
+    activate Beacon
+    Beacon --> Factory : vaultImplAddress
+    deactivate Beacon
+
+    Factory -> Factory : deployDeterministicERC1967BeaconProxy(beacon, salt)
+    note right: Uses LibClone internally
+    activate Factory
+    Factory --> Factory : vaultProxyAddress
+    deactivate Factory
+
+    Factory -> VaultProxy : initialize(beaconDepositContract, bgt, distributor, stakingToken)
+    activate VaultProxy
+    VaultProxy -> VaultImpl : delegatecall initialize(...)
+    activate VaultImpl
+    VaultImpl --> VaultProxy
+    deactivate VaultImpl
+    VaultProxy --> Factory
+    deactivate VaultProxy
+end
+
+Factory --> Creator : vaultAddress (proxy)
+deactivate Factory
+
+@enduml 

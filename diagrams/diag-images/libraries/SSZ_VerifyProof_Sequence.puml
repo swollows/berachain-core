@@ -1,0 +1,34 @@
+@startuml SSZ_VerifyProof_Sequence
+title SSZ Library - verifyProof Usage
+
+participant UsingContract <<Contract>>
+participant SSZ <<Library>>
+participant SHA256_Precompile <<Address>>
+
+UsingContract -> SSZ: verifyProof(proof, root, leaf, index)
+activate SSZ
+
+loop For each element in proof
+    SSZ -> SSZ: Determine order of leaf and proof element based on index
+    SSZ -> SHA256_Precompile: staticcall(gas(), SHA256, combined_data, 0x40, 0, 0x20)
+    activate SHA256_Precompile
+    SHA256_Precompile --> SSZ: success, computed_hash
+    deactivate SHA256_Precompile
+    opt success is false
+        SSZ --> UsingContract: Revert (e.g., OutOfGas)
+    end
+    SSZ -> SSZ: Update leaf with computed_hash
+    SSZ -> SSZ: Update index (index >> 1)
+end
+
+SSZ -> SSZ: Check final index validity (should be 1)
+opt index != 1
+    SSZ --> UsingContract: Revert (BranchHasMissingItem or BranchHasExtraItem)
+end
+
+SSZ -> SSZ: Compare final computed_hash (leaf) with root
+SSZ --> UsingContract: boolean (isValid)
+
+deactivate SSZ
+
+@enduml 

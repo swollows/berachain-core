@@ -1,0 +1,83 @@
+@startuml GovDeployer_Sequence
+
+actor Deployer
+participant DeployerContract as "GovDeployer"
+participant Create2Lib as "Create2Deployer"
+participant GovImpl as "BerachainGovernance Impl"
+participant GovProxy as "BerachainGovernance Proxy"
+participant TimelockImpl as "TimeLock Impl"
+participant TimelockProxy as "TimeLock Proxy"
+participant Token as "IVotes (BGT)"
+
+Deployer -> DeployerContract : constructor(token, guardian, ..., govSalt, timelockSalt)
+activate DeployerContract
+
+DeployerContract -> DeployerContract : _checkIfERC20Votes(token)
+activate DeployerContract
+DeployerContract -> Token : getVotes(address(this))
+activate Token
+Token --> DeployerContract
+deactivate Token
+DeployerContract -> Token : name()
+activate Token
+Token --> DeployerContract
+deactivate Token
+DeployerContract -> Token : decimals()
+activate Token
+Token --> DeployerContract
+deactivate Token
+DeployerContract --> DeployerContract
+deactivate DeployerContract
+
+DeployerContract -> DeployerContract : _deploy(BerachainGovernance.creationCode, govSalt)
+activate DeployerContract
+DeployerContract -> Create2Lib : deployWithCreate2(govSalt, creationCode)
+activate Create2Lib
+Create2Lib --> DeployerContract : govImplAddress
+deactivate Create2Lib
+DeployerContract -> Create2Lib : deployProxyWithCreate2(govImplAddress, govSalt)
+activate Create2Lib
+Create2Lib --> DeployerContract : govProxyAddress (GOVERNOR)
+deactivate Create2Lib
+DeployerContract --> DeployerContract : GOVERNOR address
+deactivate DeployerContract
+
+DeployerContract -> DeployerContract : _deploy(TimeLock.creationCode, timelockSalt)
+activate DeployerContract
+DeployerContract -> Create2Lib : deployWithCreate2(timelockSalt, creationCode)
+activate Create2Lib
+Create2Lib --> DeployerContract : timelockImplAddress
+deactivate Create2Lib
+DeployerContract -> Create2Lib : deployProxyWithCreate2(timelockImplAddress, timelockSalt)
+activate Create2Lib
+Create2Lib --> DeployerContract : timelockProxyAddress (TIMELOCK_CONTROLLER)
+deactivate Create2Lib
+DeployerContract --> DeployerContract : TIMELOCK_CONTROLLER address
+deactivate DeployerContract
+
+DeployerContract -> TimelockProxy : initialize(minDelay, [GOVERNOR], [GOVERNOR], address(this))
+activate TimelockProxy
+TimelockProxy --> DeployerContract
+deactivate TimelockProxy
+
+opt guardian != address(0)
+    DeployerContract -> TimelockProxy : grantRole(CANCELLER_ROLE, guardian)
+    activate TimelockProxy
+    TimelockProxy --> DeployerContract
+    deactivate TimelockProxy
+end
+
+DeployerContract -> TimelockProxy : revokeRole(DEFAULT_ADMIN_ROLE, address(this))
+activate TimelockProxy
+TimelockProxy --> DeployerContract
+deactivate TimelockProxy
+
+DeployerContract -> GovProxy : initialize(token, timelock, params)
+activate GovProxy
+GovProxy --> DeployerContract
+deactivate GovProxy
+
+DeployerContract --> Deployer
+deactivate DeployerContract
+
+@enduml 

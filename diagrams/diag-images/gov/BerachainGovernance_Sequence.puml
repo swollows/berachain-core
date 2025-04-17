@@ -1,0 +1,63 @@
+@startuml BerachainGovernance_Sequence
+
+actor User
+participant Gov as "BerachainGovernance"
+participant Token as "IVotes (BGT)"
+participant Timelock as "TimeLock"
+
+User -> Gov : propose(targets, values, calldatas, description)
+activate Gov
+Gov -> Token : getPastVotes(proposer, block.number - 1)
+activate Token
+Token --> Gov : pastVotes
+deactivate Token
+Gov -> Gov : _propose(...)
+Gov --> User : proposalId
+deactivate Gov
+
+... Voting Period ...
+
+User -> Gov : castVote(proposalId, support)
+activate Gov
+Gov -> Token : getPastVotes(voter, proposalSnapshot(proposalId))
+activate Token
+Token --> Gov : voterWeight
+deactivate Token
+Gov -> Gov : _countVote(proposalId, voter, support, voterWeight)
+Gov --> User
+deactivate Gov
+
+... Voting Period Ends ...
+
+User -> Gov : state(proposalId)
+activate Gov
+Gov --> User : ProposalState.Succeeded
+deactivate Gov
+
+User -> Gov : queue(targets, values, calldatas, descriptionHash)
+activate Gov
+Gov -> Timelock : scheduleBatch(targets, values, calldatas, predecessor, salt, delay)
+activate Timelock
+Timelock --> Gov : operationId
+deactivate Timelock
+Gov --> User
+deactivate Gov
+
+... Timelock Delay ...
+
+User -> Gov : execute(targets, values, calldatas, descriptionHash)
+activate Gov
+Gov -> Timelock : executeBatch(targets, values, calldatas, predecessor, salt)
+activate Timelock
+loop targets
+    Timelock -> target : call(calldata)
+    activate target
+    target --> Timelock
+    deactivate target
+end
+Timelock --> Gov
+deactivate Timelock
+Gov --> User
+deactivate Gov
+
+@enduml 

@@ -1,0 +1,99 @@
+@startuml Gov_Contracts_ClassDiagram
+skinparam classAttributeIconSize 0
+hide empty members
+
+package "src/gov" {
+    class BerachainGovernance <<Contract>> {
+        + initialize(IVotes, TimelockControllerUpgradeable, InitialGovernorParameters)
+        + propose(...)
+        + castVote(...)
+        + queue(...)
+        + execute(...)
+        + state(uint256)
+        + proposalNeedsQueuing(uint256)
+        + getTimelockOperationId(uint256)
+        # _authorizeUpgrade(address)
+        # _voteSucceeded(uint256)
+        # _countVote(...)
+        # _propose(...)
+        # _queueOperations(...)
+        # _executeOperations(...)
+        # _cancel(...)
+        # _executor()
+    }
+
+    class TimeLock <<Contract>> {
+        + initialize(uint256, address[], address[], address)
+        # _authorizeUpgrade(address)
+    }
+
+    class GovDeployer <<Contract>> {
+        + GOVERNOR: address
+        + TIMELOCK_CONTROLLER: address
+        + constructor(...)
+        # _deploy(bytes, uint256)
+        # _checkIfERC20Votes(address)
+        # _supportsERC20VotesAndMetadata(address)
+    }
+}
+
+package "src/base" {
+     class Create2Deployer <<Contract>> {
+        # deployWithCreate2(uint256, bytes)
+        # deployProxyWithCreate2(address, uint256)
+     }
+}
+
+package "@openzeppelin/contracts-upgradeable" {
+    class UUPSUpgradeable <<Abstract>>
+}
+
+package "@openzeppelin-gov" {
+    class GovernorUpgradeable <<Abstract>>
+    class TimelockControllerUpgradeable <<Abstract>>
+}
+
+package "@openzeppelin-gov-ext" {
+    class GovernorSettingsUpgradeable <<Abstract>>
+    class GovernorCountingSimpleUpgradeable <<Abstract>>
+    class GovernorStorageUpgradeable <<Abstract>>
+    class GovernorVotesUpgradeable <<Abstract>>
+    class GovernorVotesQuorumFractionUpgradeable <<Abstract>>
+    class GovernorTimelockControlUpgradeable <<Abstract>>
+}
+
+package "@openzeppelin/contracts" {
+    interface IVotes <<Interface>> {
+         + getVotes(address)
+    }
+    interface IERC20Metadata <<Interface>>
+}
+
+
+' Inheritance
+BerachainGovernance <|-- UUPSUpgradeable
+BerachainGovernance <|-- GovernorUpgradeable
+BerachainGovernance <|-- GovernorSettingsUpgradeable
+BerachainGovernance <|-- GovernorCountingSimpleUpgradeable
+BerachainGovernance <|-- GovernorStorageUpgradeable
+BerachainGovernance <|-- GovernorVotesUpgradeable
+BerachainGovernance <|-- GovernorVotesQuorumFractionUpgradeable
+BerachainGovernance <|-- GovernorTimelockControlUpgradeable
+
+TimeLock <|-- UUPSUpgradeable
+TimeLock <|-- TimelockControllerUpgradeable
+
+GovDeployer <|-- Create2Deployer
+
+' Dependencies
+GovDeployer ..> BerachainGovernance : <<deploys>>
+GovDeployer ..> TimeLock : <<deploys>>
+GovDeployer ..> IVotes : <<uses>>
+GovDeployer ..> IERC20Metadata : <<uses>>
+
+
+BerachainGovernance ..> TimeLock : uses as executor
+BerachainGovernance ..> IVotes : uses for voting
+
+
+@enduml 

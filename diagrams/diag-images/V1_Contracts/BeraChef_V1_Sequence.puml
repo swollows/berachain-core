@@ -1,0 +1,60 @@
+@startuml BeraChef_V1_Sequence
+
+actor Operator
+actor User
+participant Chef as "BeraChef_V1"
+participant BeaconDeposit as "IBeaconDeposit"
+participant Factory as "IRewardVaultFactory"
+participant Vault as "RewardVault_V1"
+
+== 보상 분배 설정 (Validator Operator) ==
+
+Operator -> Chef : queueNewRewardAllocation(valPubkey, startBlock, weights)
+activate Chef
+Chef -> Chef : _validateWeights(weights)
+loop weights
+    Chef -> Factory : getVault(weight.stakeToken)
+    activate Factory
+    Factory --> Chef : vaultAddress
+    deactivate Factory
+    Chef -> Chef : isWhitelistedVault(vaultAddress)
+end
+Chef --> Operator
+deactivate Chef
+
+... Delay ...
+
+Operator -> Chef : updateRewardAllocation(valPubkey)
+activate Chef
+Chef --> Operator
+deactivate Chef
+
+== 보상 클레임 (User) ==
+
+User -> Chef : claimRewards(valPubkey, amount)
+activate Chef
+Chef -> BeaconDeposit : getOperator(valPubkey)
+activate BeaconDeposit
+BeaconDeposit --> Chef : operator
+deactivate BeaconDeposit
+Chef -> Chef : getActiveRewardAllocation(valPubkey)
+activate Chef
+Chef --> Chef : rewardAllocation
+deactivate Chef
+loop rewardAllocation.weights
+    Chef -> Vault : getRewardFor(user)
+    note right of Vault : Calculate BGT reward
+    activate Vault
+    Vault --> Chef
+    deactivate Vault
+
+    Chef -> Vault : delegateStake(user, allocatedAmount)
+    note right of Vault : Delegate stake
+    activate Vault
+    Vault --> Chef
+    deactivate Vault
+end
+Chef --> User
+deactivate Chef
+
+@enduml 

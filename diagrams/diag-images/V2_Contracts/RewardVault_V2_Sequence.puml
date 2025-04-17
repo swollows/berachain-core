@@ -1,0 +1,62 @@
+@startuml RewardVault_V2_Sequence
+title RewardVault V2 Interaction Sequences
+
+actor User
+participant RewardVault_V2 <<Contract>>
+participant StakeToken <<ERC20>>
+participant RewardToken <<ERC20>>
+participant IncentiveToken <<ERC20>>
+participant Distributor <<Contract>>
+participant BGTIncentiveDistributor <<Contract>>
+participant BeaconDeposit <<Contract>>
+
+== Stake ==
+User -> StakeToken: approve(RewardVault_V2, amount)
+StakeToken --> User: Approval Success
+User -> RewardVault_V2: stake(amount)
+RewardVault_V2 -> RewardVault_V2: _updateReward(User)
+RewardVault_V2 -> StakeToken: safeTransferFrom(User, RewardVault_V2, amount)
+StakeToken --> RewardVault_V2: Transfer Success
+RewardVault_V2 -> BeaconDeposit: deposit(amount)
+BeaconDeposit --> RewardVault_V2: Deposit Success
+RewardVault_V2 --> User: Stake Success
+
+== Get Reward ==
+User -> RewardVault_V2: getReward()
+RewardVault_V2 -> RewardVault_V2: _updateReward(User)
+RewardVault_V2 -> RewardVault_V2: earned(User) calculation
+RewardVault_V2 -> RewardToken: safeTransfer(User, rewardAmount)
+RewardToken --> RewardVault_V2: Transfer Success
+loop For each whitelisted incentive token
+    RewardVault_V2 -> BGTIncentiveDistributor: distributeIncentive(incentiveTokenAddress, User)
+    BGTIncentiveDistributor -> IncentiveToken: safeTransfer(User, incentiveAmount)
+    IncentiveToken --> BGTIncentiveDistributor: Transfer Success
+    BGTIncentiveDistributor --> RewardVault_V2: Distribution Success
+end
+RewardVault_V2 --> User: Reward Claimed
+
+== Add Incentive ==
+User -> IncentiveToken: approve(RewardVault_V2, amount)
+IncentiveToken --> User: Approval Success
+User -> RewardVault_V2: addIncentive(incentiveTokenAddress, amount)
+RewardVault_V2 -> RewardVault_V2: Check if token is whitelisted
+RewardVault_V2 -> IncentiveToken: safeTransferFrom(User, RewardVault_V2, amount)
+IncentiveToken --> RewardVault_V2: Transfer Success
+RewardVault_V2 -> BGTIncentiveDistributor: notifyIncentiveAmount(incentiveTokenAddress, amount)
+BGTIncentiveDistributor --> RewardVault_V2: Notification Success
+RewardVault_V2 --> User: Incentive Added
+
+== Notify Reward Amount (by Distributor) ==
+Distributor -> RewardVault_V2: notifyRewardAmount(data, amount)
+RewardVault_V2 -> RewardVault_V2: _authorizeUpgrade check (implicitly)
+RewardVault_V2 -> RewardVault_V2: _checkRewardSolvency(amount)
+RewardVault_V2 -> RewardVault_V2: _updateReward(address(0))
+RewardVault_V2 -> RewardVault_V2: Update rewardRate and periodFinish
+RewardVault_V2 -> RewardVault_V2: _processIncentives(data, amount)
+loop For each processed incentive
+    RewardVault_V2 -> BGTIncentiveDistributor: distributeBGTIncentives(incentiveTokenAddress, amount)
+    BGTIncentiveDistributor --> RewardVault_V2: Distribution Success
+end
+RewardVault_V2 --> Distributor: Notification Success
+
+@enduml 

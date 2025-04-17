@@ -1,0 +1,50 @@
+@startuml Utils_TokenOps_Sequence
+title Utils Library - Token Operations Usage
+
+participant UsingContract <<Contract>>
+participant Utils <<Library>>
+participant Token <<ERC20>>
+
+== Safe Increase Allowance ==
+UsingContract -> Utils: safeIncreaseAllowance(token, spender, amount)
+activate Utils
+
+Utils -> Utils: allowance(token, UsingContract, spender)
+activate Utils #LightBlue
+ Utils -> Token: staticcall(gas(), token, allowance_calldata, 0x44, 0, 0x20)
+ activate Token
+ Token --> Utils: currentAllowance
+ deactivate Token
+Utils --> Utils: currentAllowance
+deactivate Utils #LightBlue
+
+Utils -> Utils: Check for overflow (currentAllowance + amount)
+opt Overflow
+ Utils -> Utils: revertWith(IncreaseAllowanceOverflow.selector)
+ Utils --> UsingContract: Revert
+end
+
+Utils -> Token: safeApprove(spender, newAllowance)
+activate Token
+' Token internally calls approve()
+Token --> Utils: Success
+deactivate Token
+
+Utils --> UsingContract: Success
+deactivate Utils
+
+== Try Safe Transfer ==
+UsingContract -> Utils: trySafeTransfer(token, to, amount)
+activate Utils
+
+Utils -> Token: call(TRANSFER_GAS_LIMIT, token, 0, transfer_calldata, 0x44, 0, 0x20)
+activate Token
+Token --> Utils: success, returnData
+deactivate Token
+
+Utils -> Utils: Check success and returnData
+Utils --> UsingContract: boolean (transferSuccess)
+
+deactivate Utils
+
+@enduml 

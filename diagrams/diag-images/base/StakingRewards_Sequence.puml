@@ -1,0 +1,79 @@
+@startuml StakingRewards_Sequence
+title StakingRewards Interactions
+
+actor User
+participant DerivedContract <<Contract>>
+participant StakingRewards <<Abstract>>
+participant StakeToken <<ERC20>>
+participant RewardToken <<ERC20>>
+
+== Stake ==
+User -> DerivedContract: stake(amount)
+activate DerivedContract
+DerivedContract -> StakeToken: approve(DerivedContract, amount)
+StakeToken --> DerivedContract: Approval Success
+DerivedContract -> StakingRewards: _stake(User, amount)
+activate StakingRewards
+StakingRewards -> StakingRewards: _updateReward(User)
+StakingRewards -> StakeToken: safeTransferFrom(User, DerivedContract, amount)
+StakeToken --> StakingRewards: Transfer Success
+StakingRewards -> StakingRewards: Update totalSupply & User balance
+StakingRewards --> DerivedContract: Success
+deactivate StakingRewards
+DerivedContract --> User: Stake Success
+deactivate DerivedContract
+
+== Withdraw ==
+User -> DerivedContract: withdraw(amount)
+activate DerivedContract
+DerivedContract -> StakingRewards: _withdraw(User, amount)
+activate StakingRewards
+StakingRewards -> StakingRewards: _updateReward(User)
+StakingRewards -> StakingRewards: Update totalSupply & User balance
+StakingRewards -> StakeToken: safeTransfer(User, amount)
+StakeToken --> StakingRewards: Transfer Success
+StakingRewards --> DerivedContract: Success
+deactivate StakingRewards
+DerivedContract --> User: Withdraw Success
+deactivate DerivedContract
+
+== Get Reward ==
+User -> DerivedContract: getReward(recipient)
+activate DerivedContract
+DerivedContract -> StakingRewards: _getReward(User, recipient)
+activate StakingRewards
+StakingRewards -> StakingRewards: _updateReward(User)
+StakingRewards -> StakingRewards: Calculate reward amount
+StakingRewards -> RewardToken: safeTransfer(recipient, rewardAmount)
+RewardToken --> StakingRewards: Transfer Success
+StakingRewards -> StakingRewards: Update User unclaimedReward
+StakingRewards --> DerivedContract: rewardAmount
+deactivate StakingRewards
+DerivedContract --> User: Reward Claimed
+deactivate DerivedContract
+
+== Notify Reward Amount ==
+participant Notifier <<Address>>
+Notifier -> DerivedContract: notifyRewardAmount(reward)
+activate DerivedContract
+DerivedContract -> StakingRewards: _notifyRewardAmount(reward)
+activate StakingRewards
+StakingRewards -> StakingRewards: _updateReward(address(0))
+StakingRewards -> StakingRewards: Update undistributedRewards
+StakingRewards -> StakingRewards: _checkRewardSolvency()
+StakingRewards -> RewardToken: balanceOf(DerivedContract)
+RewardToken --> StakingRewards: balance
+opt reward > balance
+ StakingRewards --> DerivedContract: Revert (InsolventReward)
+ DerivedContract --> Notifier: Error
+end
+opt totalSupply > 0
+ StakingRewards -> StakingRewards: _setRewardRate()
+ StakingRewards -> StakingRewards: Update rewardRate & periodFinish
+end
+StakingRewards --> DerivedContract: Success
+deactivate StakingRewards
+DerivedContract --> Notifier: Notification Success
+deactivate DerivedContract
+
+@enduml 

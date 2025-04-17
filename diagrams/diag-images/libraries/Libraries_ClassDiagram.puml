@@ -1,0 +1,43 @@
+@startuml Libraries_ClassDiagram
+skinparam classAttributeIconSize 0
+hide empty members
+
+package "src/libraries" {
+    class BeaconRoots <<Library>> {
+        + ADDRESS: address <<final>>
+        + isParentBlockRootAt(uint64 ts) : bool
+        + getParentBlockRootAt(uint64 ts) : bytes32
+    }
+
+    class SSZ <<Library>> {
+        + validatorPubkeyHashTreeRoot(bytes pubkey) : bytes32
+        + addressHashTreeRoot(address v) : bytes32
+        + uint64HashTreeRoot(uint64 v) : bytes32
+        + verifyProof(bytes32[] proof, bytes32 root, bytes32 leaf, uint256 index) : bool
+    }
+
+    class Utils <<Library>> {
+        + revertWith(bytes4 selector)
+        + revertFor(bytes reason)
+        + revertWith(bytes4 selector, address addr)
+        + revertWith(bytes4 selector, uint256 amount)
+        + revertWith(bytes4 selector, uint256 amount1, uint256 amount2)
+        + revertWith(bytes4 selector, address addr1, address addr2)
+        + safeIncreaseAllowance(address token, address spender, uint256 amount)
+        + allowance(address token, address owner, address spender) : uint256
+        + trySafeTransfer(address token, address to, uint256 amount) : bool
+        + changeDecimals(uint256 amount, uint8 from, uint8 to) : uint256
+    }
+}
+
+package "solady/src/utils" {
+    class SafeTransferLib <<Library>> {
+        + safeApprove(address token, address spender, uint256 amount)
+    }
+}
+
+' Dependencies
+SSZ ..> Utils : uses
+Utils ..> SafeTransferLib : uses
+
+@enduml 

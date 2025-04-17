@@ -1,0 +1,79 @@
+@startuml RootPriceOracle_Sequence
+title RootPriceOracle Interactions
+
+actor Manager
+actor Caller
+participant RootPriceOracle <<Contract>>
+participant PythOracle <<IPriceOracle>>
+participant SpotOracle <<IPriceOracle>>
+
+== Setup ==
+Manager -> RootPriceOracle: setSpotOracle(spotOracle_)
+activate RootPriceOracle
+RootPriceOracle -> RootPriceOracle: _checkRole(MANAGER_ROLE)
+RootPriceOracle -> RootPriceOracle: Update spotOracle address
+RootPriceOracle --> Manager: Success
+deactivate RootPriceOracle
+
+Manager -> RootPriceOracle: setPythOracle(pythOracle_)
+activate RootPriceOracle
+RootPriceOracle -> RootPriceOracle: _checkRole(MANAGER_ROLE)
+RootPriceOracle -> RootPriceOracle: Update pythOracle address
+RootPriceOracle --> Manager: Success
+deactivate RootPriceOracle
+
+== Get Price ==
+Caller -> RootPriceOracle: getPrice(asset) ' or getPriceUnsafe, getPriceNoOlderThan
+activate RootPriceOracle
+
+RootPriceOracle -> RootPriceOracle: _getAssetAvailability(asset)
+activate RootPriceOracle #LightBlue
+ RootPriceOracle -> PythOracle: priceAvailable(asset)
+ activate PythOracle
+ PythOracle --> RootPriceOracle: pythAvailable
+ deactivate PythOracle
+ RootPriceOracle -> SpotOracle: priceAvailable(asset)
+ activate SpotOracle
+ SpotOracle --> RootPriceOracle: spotAvailable
+ deactivate SpotOracle
+RootPriceOracle --> RootPriceOracle: pythAvailable, spotAvailable
+deactivate RootPriceOracle #LightBlue
+
+opt Not pythAvailable
+ RootPriceOracle --> Caller: Revert (UnreliablePrice)
+else Not spotAvailable
+ RootPriceOracle -> PythOracle: getPrice(asset) ' or corresponding function call
+ activate PythOracle
+ PythOracle --> RootPriceOracle: pythData
+ deactivate PythOracle
+ RootPriceOracle --> Caller: pythData
+else Both Available
+ RootPriceOracle -> PythOracle: getPrice(asset) ' or corresponding function call
+ activate PythOracle
+ PythOracle --> RootPriceOracle: pythData
+ deactivate PythOracle
+ RootPriceOracle -> SpotOracle: getPrice(asset) ' or corresponding function call
+ activate SpotOracle
+ SpotOracle --> RootPriceOracle: spotData
+ deactivate SpotOracle
+ RootPriceOracle -> RootPriceOracle: _selectLargestDeviation(pythData, spotData)
+ RootPriceOracle --> Caller: selectedData
+end
+
+deactivate RootPriceOracle
+
+== Check Price Availability ==
+Caller -> RootPriceOracle: priceAvailable(asset)
+activate RootPriceOracle
+opt address(pythOracle) != address(0)
+ RootPriceOracle -> PythOracle: priceAvailable(asset)
+ activate PythOracle
+ PythOracle --> RootPriceOracle: availability
+ deactivate PythOracle
+ RootPriceOracle --> Caller: availability
+else
+ RootPriceOracle --> Caller: false
+end
+deactivate RootPriceOracle
+
+@enduml 

@@ -1,0 +1,40 @@
+@startuml BeraChef_V0_Sequence
+
+actor Operator
+actor Distributor
+participant Chef as "BeraChef_V0"
+participant BeaconDeposit as "IBeaconDeposit"
+participant Factory as "IRewardVaultFactory_V0"
+participant Vault as "RewardVault_V0"
+
+== 보상 분배 설정 (Validator Operator) ==
+
+Operator -> Chef : queueNewRewardAllocation(valPubkey, startBlock, weights)
+activate Chef
+Chef -> Chef : _validateWeights(weights)
+loop weights
+    Chef -> Factory : getVault(weight.stakeToken)
+    activate Factory
+    Factory --> Chef : vaultAddress
+    deactivate Factory
+    Chef -> Chef : isWhitelistedVault(vaultAddress)
+end
+Chef --> Operator
+deactivate Chef
+
+== 보상 분배 활성화 (Distributor) ==
+
+Distributor -> Chef : activateReadyQueuedRewardAllocation(valPubkey)
+activate Chef
+Chef -> Chef : isQueuedRewardAllocationReady(valPubkey, block.number)
+activate Chef
+Chef --> Chef : isReady
+deactivate Chef
+opt isReady
+    Chef -> Chef : Move queued allocation to active
+    Chef -> Chef : delete queued allocation
+end
+Chef --> Distributor
+deactivate Chef
+
+@enduml 

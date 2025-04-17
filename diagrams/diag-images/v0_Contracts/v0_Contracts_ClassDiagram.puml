@@ -1,0 +1,165 @@
+@startuml v0_Contracts_ClassDiagram
+skinparam classAttributeIconSize 0
+hide empty members
+
+package "src/v0_Contracts" {
+    interface IBeraChef_V0 <<Interface>>
+    interface IRewardVaultFactory_V0 <<Interface>>
+    interface IRewardVault_V0 <<Interface>>
+
+    class BeraChef_V0 <<Contract>> {
+        + distributor: address
+        + factory: address
+        + beaconDepositContract: IBeaconDeposit
+        + rewardAllocationBlockDelay: uint64
+        + maxNumWeightsPerRewardAllocation: uint8
+        + isWhitelistedVault: mapping(address => bool)
+        + initialize(...)
+        + setMaxNumWeightsPerRewardAllocation(uint8)
+        + setRewardAllocationBlockDelay(uint64)
+        + setVaultWhitelistedStatus(address, bool, string)
+        + updateWhitelistedVaultMetadata(address, string)
+        + setDefaultRewardAllocation(RewardAllocation)
+        + queueNewRewardAllocation(bytes, uint64, Weight[])
+        + activateReadyQueuedRewardAllocation(bytes)
+        + getActiveRewardAllocation(bytes) : RewardAllocation
+        + getQueuedRewardAllocation(bytes) : RewardAllocation
+        + isQueuedRewardAllocationReady(bytes, uint64) : bool
+        # _authorizeUpgrade(address)
+        # _validateWeights(Weight[])
+        # _checkIfStillValid(Weight[])
+    }
+
+    class RewardVaultFactory_V0 <<Contract>> {
+        + VAULT_MANAGER_ROLE: bytes32
+        + VAULT_PAUSER_ROLE: bytes32
+        + beacon: address
+        + bgt: address
+        + distributor: address
+        + beaconDepositContract: address
+        + getVault: mapping(address => address)
+        + allVaults: address[]
+        + initialize(...)
+        + createRewardVault(address) : address
+        + predictRewardVaultAddress(address) : address
+        + allVaultsLength() : uint256
+        # _authorizeUpgrade(address)
+    }
+
+    class RewardVault_V0 <<Contract>> {
+        + maxIncentiveTokensCount: uint8
+        + distributor: address
+        + beaconDepositContract: IBeaconDeposit
+        + incentives: mapping(address => Incentive)
+        + whitelistedTokens: address[]
+        + stakeToken: IERC20
+        + rewardsToken: IERC20
+        + initialize(...)
+        + setDistributor(address)
+        + notifyRewardAmount(bytes, uint256)
+        + recoverERC20(address, uint256)
+        + setRewardsDuration(uint256)
+        + whitelistIncentiveToken(address, uint256, address)
+        + removeIncentiveToken(address)
+        + updateIncentiveManager(address, address)
+        + setMaxIncentiveTokensCount(uint8)
+        + pause()
+        + unpause()
+        + setOperator(address)
+        + addIncentive(address, uint256)
+        + setIncentiveRate(address, uint256)
+        + stake(uint256)
+        + stakeFor(address, uint256)
+        + withdraw(uint256)
+        + withdrawFor(address, uint256)
+        + getReward()
+        + getRewardFor(address)
+        + delegateStake(address, uint256)
+        + withdrawDelegatedStake(address, uint256)
+        + balanceOf(address) : uint256
+        + earned(address) : uint256
+        + getRewardForDuration() : uint256
+        + lastTimeRewardApplicable() : uint256
+        + rewardPerToken() : uint256
+        + operator(address) : address
+        + getDelegateStake(address, address) : uint256
+        + getTotalDelegateStake(address) : uint256
+        # _authorizeUpgrade(address) (implicitly via FactoryOwnable)
+        # _notifyRewardAmount(uint256)
+        # _processIncentives(bytes, uint256)
+        # _deleteWhitelistedTokenFromList(address)
+        # _checkSelfStakedBalance(address, uint256)
+        # _stake(address, uint256)
+        # _withdraw(address, uint256)
+        # _getReward(address)
+        # _updateReward(address)
+    }
+}
+
+package "src/pol" {
+    interface IBeaconDeposit <<Interface>>
+}
+
+package "src/libraries" {
+    class Utils <<Library>>
+}
+
+package "src/base" {
+    class FactoryOwnable <<Contract>>
+    class StakingRewards <<Contract>>
+}
+
+package "@openzeppelin/contracts-upgradeable" {
+    class OwnableUpgradeable <<Abstract>>
+    class UUPSUpgradeable <<Abstract>>
+    class AccessControlUpgradeable <<Abstract>>
+    class PausableUpgradeable <<Abstract>>
+    class ReentrancyGuardUpgradeable <<Abstract>>
+}
+
+package "@openzeppelin/contracts" {
+    interface IERC20 <<Interface>>
+    class SafeERC20 <<Library>>
+}
+
+package "solady/src/utils" {
+     class LibClone <<Library>>
+     class UpgradeableBeacon <<Contract>>
+     class FixedPointMathLib <<Library>>
+}
+
+' Inheritance & Interfaces
+BeraChef_V0 .up.|> IBeraChef_V0
+BeraChef_V0 <|-- OwnableUpgradeable
+BeraChef_V0 <|-- UUPSUpgradeable
+
+RewardVaultFactory_V0 .up.|> IRewardVaultFactory_V0
+RewardVaultFactory_V0 <|-- AccessControlUpgradeable
+RewardVaultFactory_V0 <|-- UUPSUpgradeable
+
+RewardVault_V0 .up.|> IRewardVault_V0
+RewardVault_V0 <|-- PausableUpgradeable
+RewardVault_V0 <|-- ReentrancyGuardUpgradeable
+RewardVault_V0 <|-- FactoryOwnable
+RewardVault_V0 <|-- StakingRewards
+
+' Dependencies
+BeraChef_V0 ..> Utils : uses
+BeraChef_V0 ..> IBeaconDeposit : uses
+BeraChef_V0 ..> IRewardVaultFactory_V0 : uses
+BeraChef_V0 ..> RewardVault_V0 : uses
+BeraChef_V0 "1" *-- "*" RewardVault_V0 : manages
+
+RewardVaultFactory_V0 ..> Utils : uses
+RewardVaultFactory_V0 ..> LibClone : uses
+RewardVaultFactory_V0 ..> UpgradeableBeacon : creates
+RewardVaultFactory_V0 ..> RewardVault_V0 : creates & initializes
+
+RewardVault_V0 ..> Utils : uses
+RewardVault_V0 ..> SafeERC20 : uses
+RewardVault_V0 ..> FixedPointMathLib : uses
+RewardVault_V0 ..> IBeaconDeposit : uses
+
+RewardVault_V0 "*" *-- "1" RewardVaultFactory_V0 : created by
+
+@enduml 

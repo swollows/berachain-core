@@ -1,0 +1,53 @@
+@startuml BGTIncentiveDistributor_Sequence
+
+actor VaultManager
+actor RewardVault
+actor User
+participant Dist as "BGTIncentiveDistributor"
+participant IncentiveToken as "IERC20"
+
+== 인센티브 분배 메타데이터 업데이트 ==
+
+VaultManager -> Dist : updateRewardsMetadata(distributions)
+activate Dist
+loop distributions
+    Dist -> Dist : update rewards[identifier] (merkleRoot, proof, activeAt, pubkey, token)
+end
+Dist --> VaultManager
+deactivate Dist
+
+== 인센티브 수령 ==
+
+RewardVault -> Dist : receiveIncentive(pubkey, token, amount)
+activate Dist
+Dist -> IncentiveToken : safeTransferFrom(RewardVault, Dist, amount)
+activate IncentiveToken
+IncentiveToken --> Dist
+deactivate IncentiveToken
+Dist -> Dist : update incentiveTokensPerValidator[pubkey][token]
+Dist --> RewardVault
+deactivate Dist
+
+== 인센티브 클레임 ==
+
+User -> Dist : claim(claims)
+activate Dist
+loop claims
+    Dist -> Dist : _claim(claim.identifier, claim.account, claim.amount, claim.merkleProof)
+    activate Dist
+    Dist -> Dist : check reward active (activeAt <= block.timestamp)
+    Dist -> Dist : MerkleProof.verifyCalldata(...)
+    Dist -> Dist : update claimed[identifier][account]
+    Dist -> Dist : check incentiveTokensPerValidator balance
+    Dist -> Dist : update incentiveTokensPerValidator balance
+    Dist -> IncentiveToken : safeTransfer(claim.account, claim.amount)
+    activate IncentiveToken
+    IncentiveToken --> Dist
+    deactivate IncentiveToken
+    Dist --> Dist
+    deactivate Dist
+end
+Dist --> User
+deactivate Dist
+
+@enduml 

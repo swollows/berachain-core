@@ -1,0 +1,73 @@
+@startuml RewardVault_V1_Sequence
+
+actor User
+actor Distributor
+actor IncentiveManager
+participant Vault as "RewardVault_V1"
+participant StakeToken as "IERC20 (Stake Token)"
+participant RewardToken as "IERC20 (BGT)"
+participant IncentiveToken as "IERC20 (Incentive)"
+participant DistrContract as "Distributor"
+
+== 스테이킹 ==
+
+User -> StakeToken : approve(Vault, amount)
+activate StakeToken
+StakeToken --> User
+deactivate StakeToken
+
+User -> Vault : stake(amount)
+activate Vault
+Vault -> Vault : _updateReward(User)
+Vault -> StakeToken : safeTransferFrom(User, Vault, amount)
+activate StakeToken
+StakeToken --> Vault
+deactivate StakeToken
+Vault -> Vault : _stake(User, amount)
+Vault --> User
+deactivate Vault
+
+== 보상 받기 (BGT) ==
+
+Distributor -> Vault : notifyRewardAmount(pubkey, reward)
+activate Vault
+Vault -> Vault : _updateReward(address(0)) ' Update global reward state
+Vault -> Vault : _notifyRewardAmount(reward)
+Vault -> Vault : _processIncentives(pubkey, reward) ' Process additional incentives
+Vault --> Distributor
+deactivate Vault
+
+... Time Passes ...
+
+User -> Vault : getReward()
+activate Vault
+Vault -> Vault : _getReward(User)
+activate Vault
+Vault -> Vault : earned(User)
+Vault -> RewardToken : safeTransfer(User, rewardAmount)
+activate RewardToken
+RewardToken --> Vault
+deactivate RewardToken
+Vault --> Vault
+deactivate Vault
+Vault --> User
+deactivate Vault
+
+== 인센티브 추가 (외부 토큰) ==
+
+IncentiveManager -> IncentiveToken : approve(Vault, amount)
+activate IncentiveToken
+IncentiveToken --> IncentiveManager
+deactivate IncentiveToken
+
+IncentiveManager -> Vault : addIncentive(incentiveToken, amount)
+activate Vault
+Vault -> IncentiveToken : safeTransferFrom(IncentiveManager, Vault, amount)
+activate IncentiveToken
+IncentiveToken --> Vault
+deactivate IncentiveToken
+Vault -> Vault : update incentive.amountRemaining
+Vault --> IncentiveManager
+deactivate Vault
+
+@enduml 

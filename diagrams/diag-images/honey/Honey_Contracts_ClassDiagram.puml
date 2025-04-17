@@ -1,0 +1,230 @@
+@startuml Honey_Contracts_ClassDiagram
+skinparam classAttributeIconSize 0
+hide empty members
+
+package "src/honey" {
+    interface IHoneyErrors <<Interface>>
+    interface IHoneyFactory <<Interface>>
+
+    abstract class VaultAdmin <<Abstract>> {
+        + MANAGER_ROLE: bytes32
+        + PAUSER_ROLE: bytes32
+        + beacon: address
+        + feeReceiver: address
+        + polFeeCollector: address
+        + registeredAssets: address[]
+        + vaults: mapping(address => CollateralVault)
+        + isBadCollateralAsset: mapping(address => bool)
+        + collectedFees: mapping(address => mapping(address => uint256))
+        + __VaultAdmin_init(address, address, address)
+        + pause()
+        + unpause()
+        + pauseVault(address)
+        + unpauseVault(address)
+        + setFeeReceiver(address)
+        + setPOLFeeCollector(address)
+        + setCollateralAssetStatus(address, bool)
+        + withdrawAllFees(address)
+        + withdrawCollectedFee(address, address)
+        + numRegisteredAssets() : uint256
+        # _authorizeUpgrade(address)
+        # _createVault(address) : CollateralVault
+        # _checkRegisteredAsset(address)
+        # _checkGoodCollateralAsset(address)
+        # _collectFee(address, uint256)
+    }
+
+    class CollateralVault <<Contract>> {
+        + factory: address
+        + initialize(address, address)
+        + pause()
+        + unpause()
+        + deposit(uint256, address) : uint256 (override, onlyFactory)
+        + mint(uint256, address) : uint256 (override, onlyFactory)
+        + withdraw(uint256, address, address) : uint256 (override, onlyFactory)
+        + redeem(uint256, address, address) : uint256 (override, onlyFactory)
+        + name() : string (override)
+        + symbol() : string (override)
+        + asset() : address (override)
+        + convertToAssets(uint256) : uint256 (override)
+        + convertToShares(uint256) : uint256 (override)
+        + totalAssets() : uint256 (override)
+        # _initialConvertToShares(uint256) : uint256 (override)
+        # _initialConvertToAssets(uint256) : uint256 (override)
+        # _useVirtualShares() : bool (override)
+        # _useLossyRounding() : bool (override)
+        # _convertToShares(uint256) : uint256
+        # _convertToAssets(uint256) : uint256
+    }
+
+    class Honey <<Contract>> {
+        + factory: address
+        + initialize(address, address)
+        + mint(address, uint256)
+        + burn(address, uint256)
+        + name() : string (override)
+        + symbol() : string (override)
+        # _authorizeUpgrade(address)
+    }
+
+    class HoneyDeployer <<Contract>> {
+        + honey: Honey
+        + honeyFactory: HoneyFactory
+        + honeyFactoryReader: HoneyFactoryReader
+        + constructor(...)
+    }
+
+    class HoneyFactory <<Contract>> {
+        + honey: Honey
+        + polFeeCollectorFeeRate: uint256
+        + mintRates: mapping(address => uint256)
+        + redeemRates: mapping(address => uint256)
+        + forcedBasketMode: bool
+        + liquidationEnabled: bool
+        + priceOracle: IPriceOracle
+        + priceFeedMaxDelay: uint256
+        + referenceCollateral: address
+        + relativeCap: mapping(address => uint256)
+        + globalCap: uint256
+        + recapitalizeBalanceThreshold: mapping(address => uint256)
+        + minSharesToRecapitalize: uint256
+        + initialize(...)
+        + setMintRate(address, uint256)
+        + setRedeemRate(address, uint256)
+        + setForcedBasketMode(bool)
+        + setMaxFeedDelay(uint256)
+        + setDepegOffsets(address, uint256, uint256)
+        + setReferenceCollateral(address)
+        + setGlobalCap(uint256)
+        + setRelativeCap(address, uint256)
+        + setPOLFeeCollectorFeeRate(uint256)
+        + setLiquidationEnabled(bool)
+        + setLiquidationRate(address, uint256)
+        + setPriceOracle(address)
+        + setRecapitalizeBalanceThreshold(address, uint256)
+        + setMinSharesToRecapitalize(uint256)
+        + createVault(address, uint256, uint256, uint256, uint256) : CollateralVault
+        + mint(address, uint256, address, bool) : uint256
+        + redeem(address, uint256, address, bool) : uint256[]
+        + liquidate(address, address, uint256) : uint256
+        + recapitalize(address, uint256)
+        + getWeights() : uint256[]
+        + isBasketModeEnabled(bool) : bool
+        + isCollateralPegged(address) : bool
+        + isLiquidationProfitable(address, address) : bool
+        + getCollateralPrice(address) : uint256
+        # _authorizeUpgrade(address) (override)
+        # _createVault(address) : CollateralVault (override)
+        # _getWeights(bool, bool) : uint256[]
+        # _mint(address, uint256, address, bool) : uint256
+        # _redeem(address, uint256, address, bool) : uint256[]
+        # _recapitalize(address, uint256)
+        # _liquidate(address, address, uint256) : uint256
+        # _isRecapitalizationNeeded(address) : bool
+        # _isPegged(address, uint256) : bool
+        # _checkHoneyToBurn(uint256)
+        # _checkAssetsToReceive(uint256)
+        # _checkCollateralLimits(address[], uint256[])
+    }
+
+    class HoneyFactoryReader <<Contract>> {
+        + honeyFactory: HoneyFactory
+        + initialize(address, address)
+        + previewMintCollaterals(address, uint256) : uint256[]
+        + previewMintHoney(address, uint256) : (uint256[], uint256)
+        + previewRedeemCollaterals(address, uint256) : uint256[]
+        + previewRedeemHoney(address, uint256) : (uint256[], uint256)
+        # _authorizeUpgrade(address)
+        # _previewMint(address, uint256) : uint256
+        # _previewRedeem(address, uint256) : uint256
+        # _getCollaterals() : (address[], uint256)
+        # _getHoneyMintedFromShares(address, uint256) : uint256
+        # _getSharesRedeemedFromHoney(address, uint256) : uint256
+        # _getIndexOfAsset(address[], uint256, address) : (uint256, bool)
+        # _getWeightedCollaterals(address, uint256, bool) : uint256[]
+        # _previewHoneyToRedeem(address, uint256) : uint256
+    }
+}
+
+package "src/base" {
+    class Create2Deployer <<Contract>>
+}
+
+package "src/libraries" {
+    class Utils <<Library>>
+}
+
+package "src/extras" {
+    interface IPriceOracle <<Interface>>
+}
+
+package "@openzeppelin/contracts-upgradeable" {
+    class AccessControlUpgradeable <<Abstract>>
+    class PausableUpgradeable <<Abstract>>
+    class UUPSUpgradeable <<Abstract>>
+}
+
+package "solady/src/tokens" {
+    class ERC20 <<Contract>>
+    class ERC4626 <<Abstract>>
+}
+
+package "solady/src/utils" {
+    class LibClone <<Library>>
+    class UpgradeableBeacon <<Contract>>
+    class SafeTransferLib <<Library>>
+}
+
+' Inheritance & Interfaces
+VaultAdmin <|-- AccessControlUpgradeable
+VaultAdmin <|-- PausableUpgradeable
+VaultAdmin <|-- UUPSUpgradeable
+VaultAdmin .up.|> IHoneyErrors
+
+CollateralVault <|-- ERC4626
+CollateralVault <|-- PausableUpgradeable
+CollateralVault .up.|> IHoneyErrors
+
+Honey <|-- ERC20
+Honey <|-- AccessControlUpgradeable
+Honey <|-- UUPSUpgradeable
+Honey .up.|> IHoneyErrors
+
+HoneyDeployer <|-- Create2Deployer
+
+HoneyFactory .up.|> IHoneyFactory
+HoneyFactory <|-- VaultAdmin
+
+HoneyFactoryReader <|-- AccessControlUpgradeable
+HoneyFactoryReader <|-- UUPSUpgradeable
+HoneyFactoryReader .up.|> IHoneyErrors
+
+' Dependencies
+HoneyDeployer ..> Honey : <<deploys>>
+HoneyDeployer ..> HoneyFactory : <<deploys>>
+HoneyDeployer ..> HoneyFactoryReader : <<deploys>>
+
+HoneyFactory ..> Utils : uses
+HoneyFactory ..> SafeTransferLib : uses
+HoneyFactory ..> Honey : uses
+HoneyFactory ..> VaultAdmin : uses
+HoneyFactory ..> IPriceOracle : uses
+HoneyFactory ..> CollateralVault : manages
+
+Honey ..> Utils : uses
+Honey ..> HoneyFactory : <<controlled by>>
+
+VaultAdmin ..> Utils : uses
+VaultAdmin ..> LibClone : uses
+VaultAdmin ..> UpgradeableBeacon : creates
+VaultAdmin ..> CollateralVault : creates & initializes
+
+CollateralVault ..> Utils : uses
+CollateralVault ..> VaultAdmin : <<controlled by>>
+
+HoneyFactoryReader ..> Utils : uses
+HoneyFactoryReader ..> HoneyFactory : uses
+HoneyFactoryReader ..> ERC20 : uses
+HoneyFactoryReader ..> ERC4626 : uses
+
+@enduml 

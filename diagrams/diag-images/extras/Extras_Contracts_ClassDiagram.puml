@@ -1,0 +1,118 @@
+@startuml Extras_Contracts_ClassDiagram
+skinparam classAttributeIconSize 0
+hide empty members
+
+package "src/extras" {
+    interface IPriceOracle <<Interface>> {
+       + getPrice(address) : Data
+       + getPriceUnsafe(address) : Data
+       + getPriceNoOlderThan(address, uint256) : Data
+       + priceAvailable(address) : bool
+    }
+
+    interface IRootPriceOracle <<Interface>> {
+       + UnreliablePrice() <<error>>
+       + SpotOracleSet(address) <<event>>
+       + PythOracleSet(address) <<event>>
+    }
+
+    class PeggedPriceOracle <<Contract>> {
+        + getPrice(address) : Data
+        + getPriceUnsafe(address) : Data
+        + getPriceNoOlderThan(address, uint256) : Data
+        + priceAvailable(address) : bool
+        # _priceData() : Data
+    }
+
+    class PythPriceOracle <<Contract>> {
+        + MANAGER_ROLE: bytes32
+        + pyth: IPyth
+        + feeds: mapping(address => bytes32)
+        + initialize(address)
+        + setPythSource(address)
+        + setPriceFeed(address, bytes32)
+        + getPrice(address) : Data
+        + getPriceUnsafe(address) : Data
+        + getPriceNoOlderThan(address, uint256) : Data
+        + priceAvailable(address) : bool
+        # _authorizeUpgrade(address)
+        # _wrapData(PythStructs.Price) : Data
+        # _pythAndFeedAreSet(address) : bool
+    }
+
+    class PythPriceOracleDeployer <<Contract>> {
+        + oracle: PythPriceOracle
+        + constructor(address, uint256)
+    }
+
+    class RootPriceOracle <<Contract>> {
+        + MANAGER_ROLE: bytes32
+        + spotOracle: IPriceOracle
+        + pythOracle: IPriceOracle
+        + initialize(address)
+        + setSpotOracle(address)
+        + setPythOracle(address)
+        + getPrice(address) : Data
+        + getPriceUnsafe(address) : Data
+        + getPriceNoOlderThan(address, uint256) : Data
+        + priceAvailable(address) : bool
+        # _getAssetAvailability(address) : (bool, bool)
+        # _selectLargestDeviation(Data, Data) : Data
+    }
+
+    class RootPriceOracleDeployer <<Contract>> {
+        + rootPriceOracle: RootPriceOracle
+        + constructor(address, uint256)
+    }
+}
+
+package "src/base" {
+    class Create2Deployer <<Contract>>
+}
+
+package "src/libraries" {
+    class Utils <<Library>>
+}
+
+package "@openzeppelin/contracts-upgradeable" {
+    class AccessControlUpgradeable <<Abstract>>
+    class UUPSUpgradeable <<Abstract>>
+    class Initializable <<Abstract>>
+}
+
+package "@openzeppelin/contracts" {
+    class AccessControl <<Abstract>>
+}
+
+package "@pythnetwork" {
+    interface IPyth <<Interface>>
+    struct PythStructs.Price
+    class PythUtils <<Library>>
+}
+
+' Inheritance & Interfaces
+IRootPriceOracle <|-- IPriceOracle
+PeggedPriceOracle .up.|> IPriceOracle
+PythPriceOracle .up.|> IPriceOracle
+PythPriceOracle <|-- AccessControlUpgradeable
+PythPriceOracle <|-- UUPSUpgradeable
+PythPriceOracleDeployer <|-- Create2Deployer
+RootPriceOracle .up.|> IRootPriceOracle
+RootPriceOracle <|-- AccessControl
+RootPriceOracle <|-- Initializable
+RootPriceOracleDeployer <|-- Create2Deployer
+
+' Dependencies
+PythPriceOracle ..> IPyth : uses
+PythPriceOracle ..> PythStructs.Price : uses
+PythPriceOracle ..> PythUtils : uses
+PythPriceOracle ..> Utils : uses
+
+PythPriceOracleDeployer ..> PythPriceOracle : <<deploys>>
+
+RootPriceOracle ..> IPriceOracle : uses (spotOracle, pythOracle)
+RootPriceOracle ..> Utils : uses
+
+RootPriceOracleDeployer ..> RootPriceOracle : <<deploys>>
+
+@enduml 

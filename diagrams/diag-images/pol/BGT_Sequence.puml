@@ -1,0 +1,63 @@
+@startuml BGT_Sequence
+
+actor User
+participant BGT
+participant Staker as "BGTStaker"
+participant BRC as "BlockRewardController"
+
+== 부스팅 설정 ==
+
+User -> BGT : queueBoost(pubkey, amount)
+activate BGT
+BGT -> BGT : checkUnboostedBalance(User, amount)
+BGT -> BGT : update userBoosts[User].queuedBoost
+BGT -> BGT : update boostedQueue[User][pubkey]
+BGT --> User
+deactivate BGT
+
+... activateBoostDelay ...
+
+User -> BGT : activateBoost(User, pubkey)
+activate BGT
+BGT -> BGT : check boostedQueue[User][pubkey]
+BGT -> BGT : check _checkEnoughTimePassed
+opt timePassed
+    BGT -> BGT : update totalBoosts
+    BGT -> BGT : update userBoosts[User].boost
+    BGT -> BGT : update userBoosts[User].queuedBoost
+    BGT -> BGT : update boosted[User][pubkey]
+    BGT -> BGT : update boostees[pubkey]
+    BGT -> BGT : delete boostedQueue[User][pubkey]
+
+    BGT -> Staker : stake(User, amount)
+    activate Staker
+    Staker -> Staker : _stake(User, amount)
+    Staker --> BGT
+    deactivate Staker
+end
+BGT --> User
+deactivate BGT
+
+== 스테이킹 (Boost 사용) ==
+
+User -> BGT : stake(amount)
+activate BGT
+BGT -> BGT : checkUnboostedBalance(User, amount)
+BGT -> BGT : update userBoosts[User].boost
+BGT -> Staker : stake(User, amount)
+activate Staker
+Staker -> Staker : _stake(User, amount)
+Staker --> BGT
+deactivate Staker
+BGT --> User
+deactivate BGT
+
+== BGT 민팅 (BlockRewardController) ==
+
+BRC -> BGT : mint(distributor/operator, amount)
+activate BGT
+BGT -> BGT : _mint(to, amount)
+BGT --> BRC
+deactivate BGT
+
+@enduml 

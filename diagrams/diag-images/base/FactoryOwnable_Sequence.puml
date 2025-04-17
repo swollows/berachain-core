@@ -1,0 +1,41 @@
+@startuml FactoryOwnable_Sequence
+title FactoryOwnable Access Control Check
+
+actor User
+participant DerivedContract <<Contract>>
+participant FactoryOwnable <<Abstract>>
+participant FactoryContract <<Address>>
+
+User -> DerivedContract: callFunctionWithModifier()
+activate DerivedContract
+
+DerivedContract -> FactoryOwnable: modifierCheck() ' e.g., onlyFactoryOwner
+activate FactoryOwnable
+
+FactoryOwnable -> FactoryOwnable: isFactoryRole(User) ' e.g., isFactoryOwner
+activate FactoryOwnable #LightBlue
+
+FactoryOwnable -> FactoryContract: hasRole(role, User)
+activate FactoryContract
+
+FactoryContract --> FactoryOwnable: boolean (has role)
+deactivate FactoryContract
+
+FactoryOwnable --> FactoryOwnable: result
+deactivate FactoryOwnable #LightBlue
+
+alt Has Role
+  FactoryOwnable --> DerivedContract: Continue execution
+else No Role
+  FactoryOwnable --> DerivedContract: Revert (OwnableUnauthorizedAccount)
+  DerivedContract --> User: Error
+end
+
+deactivate FactoryOwnable
+
+DerivedContract -> DerivedContract: executeFunctionLogic()
+DerivedContract --> User: Success
+
+deactivate DerivedContract
+
+@enduml 

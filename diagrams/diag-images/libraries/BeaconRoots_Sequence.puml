@@ -1,0 +1,25 @@
+@startuml BeaconRoots_Sequence
+title BeaconRoots Library Usage
+
+participant UsingContract <<Contract>>
+participant BeaconRoots <<Library>>
+participant EIP4788_Contract <<Address>>
+
+UsingContract -> BeaconRoots: getParentBlockRootAt(timestamp)
+activate BeaconRoots
+
+BeaconRoots -> EIP4788_Contract: staticcall(gas(), ADDRESS, timestamp_data, 0x20, 0, 0x20)
+activate EIP4788_Contract
+
+EIP4788_Contract --> BeaconRoots: success, root_data
+deactivate EIP4788_Contract
+
+alt success is true
+    BeaconRoots --> UsingContract: root
+else success is false
+    BeaconRoots --> UsingContract: Revert (RootNotFound)
+end
+
+deactivate BeaconRoots
+
+@enduml 
