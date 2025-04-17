@@ -6,5 +6,5 @@
 - [libraries](diagrams/libraries.md)
 - [pol](diagrams/pol.md)
 - [v0 Contracts](diagrams/v0_Contracts.md)
-- [v1 Contracts](diagrams/v1_Contracts.md)
-- [v2 Contracts](diagrams/v2_Contracts.md)
+- [V1 Contracts](diagrams/V1_Contracts.md)
+- [V2 Contracts](diagrams/V2_Contracts.md)
