@@ -17,14 +17,10 @@
 
 `RewardVault_V2` 컨트랙트와 관련된 인터페이스, 라이브러리, 상속 관계를 보여주는 클래스 다이어그램입니다.
 
-```plantuml
-./diag-images/V2_Contracts/V2_Contracts_ClassDiagram.puml
-```
+![V2 Contracts Class Diagram](diag-images/V2_Contracts/V2_Contracts_ClassDiagram.png)
 
 ### Sequence Diagram
 
 `RewardVault_V2`의 주요 상호작용(Stake, Get Reward, Add Incentive, Notify Reward Amount)을 보여주는 시퀀스 다이어그램입니다.
 
-```plantuml
-./diag-images/V2_Contracts/RewardVault_V2_Sequence.puml
-``` 
+![RewardVault_V2 Sequence Diagram](diag-images/V2_Contracts/RewardVault_V2_Sequence.png) 

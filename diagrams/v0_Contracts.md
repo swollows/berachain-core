@@ -20,10 +20,10 @@
 
 이 다이어그램은 `RewardVaultFactory_V0`가 새로운 `RewardVault_V0` 인스턴스(Proxy)를 생성하고 초기화하는 과정을 보여줍니다.
 
-![RewardVaultFactory_V0 Sequence Diagram](diag-images/v0_Contracts/RewardVaultFactory_V0_Sequence.puml)
+![RewardVaultFactory_V0 Sequence Diagram](diag-images/v0_Contracts/RewardVaultFactory_V0_Sequence.png)
 
 ## RewardVault_V0 Sequence
 
 `RewardVault_V0`의 주요 동작(스테이킹, 보상 받기, 인센티브 추가 등)은 `RewardVault_V1`과 거의 동일합니다. 자세한 흐름은 아래 V1 시퀀스 다이어그램을 참조하십시오.
 
-[RewardVault_V1 Sequence Diagram](diag-images/V1_Contracts/RewardVault_V1_Sequence.png) 
+![RewardVault_V1 Sequence Diagram](diag-images/V1_Contracts/RewardVault_V1_Sequence.png) 
