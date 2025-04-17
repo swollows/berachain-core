@@ -1,4 +1,4 @@
-# Berachain Core Contract Sequence Diagrams
+# Berachain Core Contract Diagrams
 - [base](diagrams/base.md)
 - [extras](diagrams/extras.md)
 - [gov](diagrams/gov.md)
